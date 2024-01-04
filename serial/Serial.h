@@ -51,6 +51,9 @@ namespace serial {
      * Returns the number of bytes actually written
      */
     std::size_t write(const std::byte* data, std::size_t size);
+
+    private:
+      FILE* file;
   };
 
   /**
@@ -84,6 +87,9 @@ namespace serial {
      * Returns the number of bytes actually read.
      */
     std::size_t read(std::byte* data, std::size_t size);
+
+    private:
+      FILE* file;
   };
 
 
