@@ -4,3 +4,4 @@ sig/build
 sig/googletest
 serial/build
 serial/googletest
+.vscode
