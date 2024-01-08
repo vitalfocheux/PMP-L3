@@ -13,8 +13,12 @@ namespace serial {
         }
     }
 
+    /**
+     * TODO: revoir le cours pour ces deux fonctions
+    */
     OBinaryFile::OBinaryFile(OBinaryFile&& other) noexcept {
-        std::swap(this->file, other.file);
+        other.file = this->file;
+        this->file = nullptr;
     }
 
 
@@ -26,8 +30,8 @@ namespace serial {
     }
 
     OBinaryFile::~OBinaryFile() {
-        if(this->file) {
-            std::fclose(this->file);
+        if(std::fclose(this->file)) {
+            throw std::runtime_error("Couldn't close file\n");
         }
     }
 

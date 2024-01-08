@@ -41,12 +41,18 @@ target_include_directories(testSerial
 
 target_compile_options(testSerial
   PRIVATE
-  "-Wall" "-Wextra" "-g"
+  "-Wall" "-Wextra" "-g" "-fsanitize=address,undefined"
 )
 
 target_compile_features(testSerial
   PUBLIC
     cxx_std_17
+)
+
+set_target_properties(testSerial
+  PROPERTIES
+    CXX_EXTENSIONS OFF
+    LINK_FLAGS "-fsanitize=address,undefined"
 )
 
 target_link_libraries(testSerial
