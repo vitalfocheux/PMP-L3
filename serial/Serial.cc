@@ -94,22 +94,34 @@ namespace serial {
     }
 
     OBinaryFile& operator<<(OBinaryFile& file, uint8_t x) {
-        file.write(reinterpret_cast<const std::byte*>(&x), sizeof(x));
+        std::size_t bytesWrite = file.write(reinterpret_cast<const std::byte*>(&x), sizeof(uint8_t));
+        if(bytesWrite != sizeof(uint8_t)) {
+            throw std::runtime_error("Couldn't write uint8_t to file\n");
+        }
         return file;
     }
 
     OBinaryFile& operator<<(OBinaryFile& file, int8_t x) {
-        file.write(reinterpret_cast<const std::byte*>(&x), sizeof(x));
+        std::size_t bytesWrite = file.write(reinterpret_cast<const std::byte*>(&x), sizeof(int8_t));
+        if(bytesWrite != sizeof(int8_t)) {
+            throw std::runtime_error("Couldn't write int8_t to file\n");
+        }
         return file;
     }
 
     OBinaryFile& operator<<(OBinaryFile& file, uint16_t x) {
-        file.write(reinterpret_cast<const std::byte*>(&x), sizeof(x));
+        std::size_t bytesWrite = file.write(reinterpret_cast<const std::byte*>(&x), sizeof(uint16_t));
+        if(bytesWrite != sizeof(uint16_t)) {
+            throw std::runtime_error("Couldn't write uint16_t to file\n");
+        }
         return file;
     }
 
     OBinaryFile& operator<<(OBinaryFile& file, int16_t x) {
-        file.write(reinterpret_cast<const std::byte*>(&x), sizeof(x));
+        std::size_t bytesWrite = file.write(reinterpret_cast<const std::byte*>(&x), sizeof(int16_t));
+        if(bytesWrite != sizeof(int16_t)) {
+            throw std::runtime_error("Couldn't write int16_t to file\n");
+        }
         return file;
     }
 
@@ -162,12 +174,18 @@ namespace serial {
     }
 
     IBinaryFile& operator>>(IBinaryFile& file, int8_t& x) {
-        file.read(reinterpret_cast<std::byte*>(&x), sizeof(x));
+        std::size_t bytesRead = file.read(reinterpret_cast<std::byte*>(&x), sizeof(int8_t));
+        if(bytesRead != sizeof(int8_t)) {
+            throw std::runtime_error("Couldn't read int8_t from file\n");
+        }
         return file;
     }
 
     IBinaryFile& operator>>(IBinaryFile& file, uint8_t& x) {
-        file.read(reinterpret_cast<std::byte*>(&x), sizeof(x));
+        std::size_t bytesRead = file.read(reinterpret_cast<std::byte*>(&x), sizeof(uint8_t));
+        if(bytesRead != sizeof(uint8_t)) {
+            throw std::runtime_error("Couldn't read uint8_t from file\n");
+        }
         return file;
     }
 
@@ -202,7 +220,7 @@ namespace serial {
     }
 
     IBinaryFile& operator>>(IBinaryFile& file, char& x) {
-        // TODO
+        file.read(reinterpret_cast<std::byte*>(&x), sizeof(char));
         return file;
     }
 

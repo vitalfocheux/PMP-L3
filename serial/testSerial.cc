@@ -235,6 +235,7 @@ TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_Move_Assignmen
   uint8_t y;
   std::size_t size = 0;
   
+  
   {
     serial::OBinaryFile f(file, serial::OBinaryFile::Mode::Truncate);
     for(std::size_t i = 0; i < 4; ++i){
@@ -267,10 +268,11 @@ TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_INT8){
   std::vector<uint8_t> x = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF};
   int8_t y;
   std::size_t size = 0;
+  std::size_t x_size = x.size();
   
   {
     serial::OBinaryFile f(file, serial::OBinaryFile::Mode::Truncate);
-    for(std::size_t i = 0; i < x.size(); ++i){
+    for(std::size_t i = 0; i < x_size; ++i){
       size += f.write(reinterpret_cast<const std::byte*>(&x[i]), sizeof(x[i]));
       EXPECT_EQ(size, (i+1));
     }
@@ -280,7 +282,7 @@ TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_INT8){
 
   {
     serial::IBinaryFile r(file);
-    for(std::size_t i = 0; i < x.size(); ++i){
+    for(std::size_t i = 0; i < x_size; ++i){
       size += r.read(reinterpret_cast<std::byte*>(&y), sizeof(y));
       if(x[i] > 0x7F){
         EXPECT_NE(y, x[i]);
@@ -291,7 +293,95 @@ TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_INT8){
       EXPECT_EQ(size, (i+1));
     }
   }
+}
 
+TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_Move_Constructor_INT8){
+  std::vector<uint8_t> x = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF};
+  int8_t y;
+  std::size_t size = 0;
+  std::size_t x_size = x.size();
+  
+  {
+    serial::OBinaryFile f(file, serial::OBinaryFile::Mode::Truncate);
+    for(std::size_t i = 0; i < x_size; ++i){
+      size += f.write(reinterpret_cast<const std::byte*>(&x[i]), sizeof(x[i]));
+      EXPECT_EQ(size, (i+1));
+    }
+  }
+
+  size = 0;
+
+  {
+    serial::IBinaryFile r(file);
+    for(std::size_t i = 0; i < x_size/2; ++i){
+      size += r.read(reinterpret_cast<std::byte*>(&y), sizeof(y));
+      if(x[i] > 0x7F){
+        EXPECT_NE(y, x[i]);
+        EXPECT_EQ(y, (x[i] - 0x100));
+      }else{
+        EXPECT_EQ(y, x[i]);
+      }
+      EXPECT_EQ(size, (i+1));
+    }
+
+    serial::IBinaryFile copy = std::move(r);
+
+    for(std::size_t i = x_size/2; i < x_size; ++i){
+      size += copy.read(reinterpret_cast<std::byte*>(&y), sizeof(y));
+      if(x[i] > 0x7F){
+        EXPECT_NE(y, x[i]);
+        EXPECT_EQ(y, (x[i] - 0x100));
+      }else{
+        EXPECT_EQ(y, x[i]);
+      }
+      EXPECT_EQ(size, (i+1));
+    }
+  }
+}
+
+TEST(UINT8, Write_Multiple_Different_Read_Multiple_Different_With_Move_Assignment_INT8){
+  std::vector<uint8_t> x = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF};
+  int8_t y;
+  std::size_t size = 0;
+  std::size_t x_size = x.size();
+  
+  {
+    serial::OBinaryFile f(file, serial::OBinaryFile::Mode::Truncate);
+    for(std::size_t i = 0; i < x_size; ++i){
+      size += f.write(reinterpret_cast<const std::byte*>(&x[i]), sizeof(x[i]));
+      EXPECT_EQ(size, (i+1));
+    }
+  }
+
+  size = 0;
+
+  {
+    serial::IBinaryFile r(file);
+    for(std::size_t i = 0; i < x_size/2; ++i){
+      size += r.read(reinterpret_cast<std::byte*>(&y), sizeof(y));
+      if(x[i] > 0x7F){
+        EXPECT_NE(y, x[i]);
+        EXPECT_EQ(y, (x[i] - 0x100));
+      }else{
+        EXPECT_EQ(y, x[i]);
+      }
+      EXPECT_EQ(size, (i+1));
+    }
+
+    serial::IBinaryFile copy(file);
+    copy = std::move(r);
+
+    for(std::size_t i = x_size/2; i < x_size; ++i){
+      size += copy.read(reinterpret_cast<std::byte*>(&y), sizeof(y));
+      if(x[i] > 0x7F){
+        EXPECT_NE(y, x[i]);
+        EXPECT_EQ(y, (x[i] - 0x100));
+      }else{
+        EXPECT_EQ(y, x[i]);
+      }
+      EXPECT_EQ(size, (i+1));
+    }
+  }
 }
 
 int main(int argc, char* argv[]) {
