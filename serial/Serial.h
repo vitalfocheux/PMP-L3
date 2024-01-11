@@ -90,6 +90,7 @@ namespace serial {
 
     private:
       FILE* file;
+      long fileSize;
   };
 
 

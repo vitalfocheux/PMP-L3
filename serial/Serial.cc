@@ -4,6 +4,7 @@
 
 namespace serial {
 
+
     OBinaryFile::OBinaryFile(const std::string& filename, Mode mode) {
         const char* modeStr = (mode == Mode::Truncate) ? "wb" : "ab";
         this->file = std::fopen(filename.c_str(), modeStr);
@@ -11,27 +12,34 @@ namespace serial {
         if (!this->file) {
             throw std::runtime_error("Couldn't open file " + filename + " for writing\n");
         }
+        // printf("Constructor %p\n", this);
     }
 
-    /**
-     * TODO: revoir le cours pour ces deux fonctions
-    */
-    OBinaryFile::OBinaryFile(OBinaryFile&& other) noexcept {
-        other.file = this->file;
-        this->file = nullptr;
+    
+
+    
+    OBinaryFile::OBinaryFile(OBinaryFile&& other) noexcept : file(other.file){
+        // printf("Move constructor %p\n", this);
+        other.file = nullptr;
     }
+        
 
 
     OBinaryFile& OBinaryFile::operator=(OBinaryFile&& other) noexcept {
+        
+        // printf("Move assignment %p\n", this);
         if(this != &other) {
-            std::swap(this->file, other.file);
+            std::fclose(this->file);
+            this->file = other.file;
+            other.file = nullptr;
         }
         return *this;
     }
 
     OBinaryFile::~OBinaryFile() {
-        if(std::fclose(this->file)) {
-            throw std::runtime_error("Couldn't close file\n");
+        // printf("Destructor %p\n", this);
+        if(this->file) {
+            std::fclose(this->file);
         }
     }
 
@@ -45,15 +53,31 @@ namespace serial {
         if (!this->file) {
             throw std::runtime_error("Couldn't open file " + filename + " for reading\n");
         }
+        // printf("Fichier ouvert avec succès pour la lecture.\n");
+        // Position the cursor at the beginning of the file
+        std::fseek(this->file, 0, SEEK_SET);
+
+        // Get the file size
+        std::fseek(this->file, 0, SEEK_END);
+        this->fileSize = std::ftell(this->file);
+        std::rewind(this->file);
+        // printf("Chemin du fichier : %s\n", filename.c_str());
+        // printf("Taille du fichier : %ld octets\n", this->fileSize);
+       
     }
 
-    IBinaryFile::IBinaryFile(IBinaryFile&& other) noexcept {
-        std::swap(this->file, other.file);
+    IBinaryFile::IBinaryFile(IBinaryFile&& other) noexcept : file(other.file), fileSize(other.fileSize) {
+        other.file = nullptr;
+        other.fileSize = 0;
     }
 
     IBinaryFile& IBinaryFile::operator=(IBinaryFile&& other) noexcept {
         if(this != &other) {
-            std::swap(this->file, other.file);
+            std::fclose(file);
+            this->file = other.file;
+            this->fileSize = other.fileSize;
+            other.file = nullptr;
+            other.fileSize = 0;
         }
         return *this;
     }
@@ -61,6 +85,7 @@ namespace serial {
     IBinaryFile::~IBinaryFile() {
         if(this->file) {
             std::fclose(this->file);
+            this->fileSize = 0;
         }
     }
 
