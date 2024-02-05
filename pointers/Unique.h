@@ -12,39 +12,54 @@ namespace sp {
     /**
      * @brief Constructor takes a dynamic pointer
      */
-    Unique(T* ptr = nullptr) {
+    Unique(T* ptr = nullptr) : ptr(ptr){
+    }
+
+    Unique(const Unique<T>&) = delete;
+    Unique(Unique<T>&& other) noexcept : ptr(std::exchange(other.ptr, nullptr)){ }
+
+    Unique<T>& operator=(const Unique<T>&) = delete;
+    Unique<T>& operator=(Unique<T>&& other) noexcept{
+      std::swap(ptr, other.ptr);
+      return *this;
+    }
+
+    ~Unique(){
+      if(ptr != nullptr){
+        delete ptr;
+      }
     }
 
     /**
      * @brief Get the raw pointer
      */
     T* get() {
-      return nullptr;
+      return ptr;
     }
 
     /**
      * @brief Get a reference on pointed data
      */
     T& operator*() {
-      return T();
+      return *ptr;
     }
 
     /**
      * @brief Get the raw pointer
      */
     T* operator->() {
-      return nullptr;
+      return ptr;
     }
 
     /**
      * @brief Check if the raw pointer exists
      */
     bool exists() const {
-      return false;
+      return ptr != nullptr;
     }
 
   private:
-    // implementation defined
+    T* ptr;
   };
 }
 

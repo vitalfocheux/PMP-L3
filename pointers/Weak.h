@@ -31,11 +31,15 @@ namespace sp {
      * retrun a non existing Shared pointeur.
      */
     Shared<T> lock() {
-      return Shared<T>();
+      if(ptr != nullptr){
+        return Shared<T>();
+      }
+      return Shared<T>(ptr);
     }
 
   private:
-    // implementation defined
+    T* ptr;
+    std::size_t* refCount;
   };
 }
 
