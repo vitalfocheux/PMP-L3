@@ -203,6 +203,85 @@ TEST(Unique, Adjacent_Difference){
   }
 }
 
+// TEST(Shared, test){
+//   sp::Shared<int> shared = new int(42);
+//   sp::Shared<int> shared2 = shared;
+//   sp::Shared<int> shared3;
+//   {
+//     shared3 = shared;
+//     EXPECT_TRUE(shared.count() == 3u);
+//     EXPECT_TRUE(shared2.count() == 3u);
+//     EXPECT_TRUE(shared3.count() == 3u);
+//     ++(*shared3);
+//   }
+//   EXPECT_TRUE(*shared3 == 43u);
+//   EXPECT_TRUE(*shared2 == 43u);
+//   EXPECT_TRUE(*shared == 43u);
+//   {
+//     sp::Shared<int> shared4(std::move(shared3));
+//     shared4 = std::move(shared2);
+//     shared4 = std::move(shared);
+//   }
+//   EXPECT_TRUE(shared.count() == 2u);
+// }
+
+TEST(Shared, Init){
+  sp::Shared<int> shared(new int(42));
+  EXPECT_TRUE(*shared == 42u);
+  EXPECT_TRUE(shared.exists());
+  EXPECT_TRUE(shared.get() != nullptr);
+  EXPECT_TRUE(*shared.get() == 42u);
+}
+
+TEST(Shared, Arrow){
+  sp::Shared<Hello> shared(new Hello());
+  EXPECT_TRUE(shared.exists());
+  shared->printMessage();
+}
+
+TEST(Shared, Copy_Constructor){
+  sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared2(shared);
+  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_TRUE(*shared == 42u);
+  EXPECT_TRUE(shared.exists());
+  EXPECT_TRUE(shared2.exists());
+  EXPECT_TRUE(shared.count() == 2u);
+  EXPECT_TRUE(shared2.count() == 2u);
+}
+
+TEST(Shared, Move_Constructor){
+  sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared2(std::move(shared));
+  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_FALSE(shared.exists());
+  EXPECT_TRUE(shared2.exists());
+  EXPECT_TRUE(shared2.count() == 1u);
+}
+
+TEST(Shared, Copy_Assignment){
+  sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared2;
+  shared2 = shared;
+  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_TRUE(*shared == 42u);
+  EXPECT_TRUE(shared.exists());
+  EXPECT_TRUE(shared2.exists());
+  EXPECT_TRUE(shared.count() == 2u);
+  EXPECT_TRUE(shared2.count() == 2u);
+}
+
+TEST(Shared, Move_Assignment){
+  sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared2;
+  std::cout << "sharedCount: " << shared.count() << std::endl;
+  shared2 = std::move(shared);
+  std::cout << "sharedCount: " << shared2.count() << std::endl;
+  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_TRUE(shared2.exists());
+  EXPECT_TRUE(shared2.count() == 1u);
+}
+
 TEST(Exemple, Exemple){
   sp::Unique<int> unique(new int(0));
   ++(*unique);
@@ -211,23 +290,23 @@ TEST(Exemple, Exemple){
   sp::Shared<int> shared(new int(42));
   EXPECT_TRUE(*shared == 42);
 
-//   sp::Weak<int> weak1(shared);
-//   {
-//     auto tmp = weak1.lock();
-//     EXPECT_TRUE(tmp.exists());
-//     (*tmp) /= 2;
-//     EXPECT_TRUE(*tmp == 21);
-//   }
+  // sp::Weak<int> weak1(shared);
+  // {
+  //   auto tmp = weak1.lock();
+  //   EXPECT_TRUE(tmp.exists());
+  //   (*tmp) /= 2;
+  //   EXPECT_TRUE(*tmp == 21);
+  // }
 
-//   shared = sp::Shared<int>(new int(1337));
-//   sp::Weak<int> weak2(shared);
-//   {
-//     auto tmp = weak1.lock();
-//     EXPECT_FALSE(tmp.exists());
+  // shared = sp::Shared<int>(new int(1337));
+  // sp::Weak<int> weak2(shared);
+  // {
+  //   auto tmp = weak1.lock();
+  //   EXPECT_FALSE(tmp.exists());
     
-//     tmp = weak2.lock();
-//     EXPECT_TRUE(*tmp == 1337u);
-//   }
+  //   tmp = weak2.lock();
+  //   EXPECT_TRUE(*tmp == 1337u);
+  // }
 }
 
 int main(int argc, char* argv[]) {

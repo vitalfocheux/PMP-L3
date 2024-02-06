@@ -21,6 +21,28 @@ namespace sp {
      * @brief Constructor takes a Shared pointer
      */
     Weak(const Shared<T>& shared) {
+      ptr = shared.get();
+      *refCount = shared.count();
+    }
+
+    Weak(const Weak<T>&  other){
+
+    }
+
+    Weak(Weak<T>&& other) noexcept{
+
+    }
+
+    Weak<T>& operator=(const Weak<T>& other){
+      return *this;
+    }
+
+    Weak<T>& operator=(Weak<T>&& other) noexcept{
+      return *this;
+    }
+
+    ~Weak(){
+      
     }
 
     /**
@@ -40,6 +62,7 @@ namespace sp {
   private:
     T* ptr;
     std::size_t* refCount;
+    std::size_t* weakCount;
   };
 }
 

@@ -25,7 +25,7 @@ namespace sp {
     }
 
     ~Unique(){
-      if(ptr != nullptr){
+      if(exists()){
         delete ptr;
       }
     }
