@@ -16,21 +16,32 @@ namespace sp {
     /**
      * @brief Constructor takes a dynamic pointer
      */
-    Shared(T* ptr = nullptr) : ptr(ptr), refCount(new std::size_t(1)){
+    Shared(T* ptr = nullptr) : ptr(ptr){
+      if(ptr != nullptr){
+        refCount = new std::size_t(1);
+      }
     }
 
     Shared(const Shared<T>& other) : ptr(other.ptr), refCount(other.refCount){
-      // if(ptr != nullptr){
-      //   (*refCount)++;
-      // }
-      (*refCount)++;
+      if(ptr != nullptr){
+        (*refCount)++;
+      }
     }
 
-    Shared(Shared<T>&& other) noexcept : ptr(std::exchange(other.ptr, nullptr)), refCount(std::exchange(other.refCount, refCount)){
+    Shared(Shared<T>&& other) noexcept : ptr(other.ptr), refCount(other.refCount){
+      other.ptr = nullptr;
+      other.refCount = 0;
     }
 
     Shared<T>& operator=(const Shared<T>& other){
       if(this != &other){
+        if(ptr != nullptr){
+          (*refCount)--;
+          if(*refCount == 0){
+            delete ptr;
+            delete refCount;
+          }
+        }
         ptr = other.ptr;
         refCount = other.refCount;
         (*refCount)++;
@@ -41,16 +52,18 @@ namespace sp {
     Shared<T>& operator=(Shared<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       std::swap(refCount, other.refCount);
-      std::cout << "Shared move assignment " << *other.refCount << std::endl;
+      // std::cout << "Shared move assignment " << *other.refCount << std::endl;
       return *this;
     }
 
     ~Shared(){
-      std::cout << "Shared destructor " << *refCount << std::endl;
-      --(*refCount);
-      if(*refCount == 0){
-        delete ptr;
-        delete refCount;
+      // std::cout << "Shared destructor " << *refCount << std::endl;
+      if(ptr != nullptr){
+        --(*refCount);
+        if(*refCount == 0){
+          delete ptr;
+          delete refCount;
+        }
       }
     }
 
@@ -79,6 +92,9 @@ namespace sp {
      * @brief Get the number of Shared pointed on the current pointer
      */
     std::size_t count() const {
+      if(ptr == nullptr){
+        return 0;
+      }
       return *refCount;
     }
 
@@ -86,6 +102,9 @@ namespace sp {
      * @brief  Check if the raw pointer exists
      */
     bool exists() const {
+      if(ptr == nullptr){
+        return false;
+      }
       return *refCount > 0;
     }
 

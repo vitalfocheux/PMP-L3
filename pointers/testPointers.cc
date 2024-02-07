@@ -274,9 +274,7 @@ TEST(Shared, Copy_Assignment){
 TEST(Shared, Move_Assignment){
   sp::Shared<int> shared(new int(42));
   sp::Shared<int> shared2;
-  std::cout << "sharedCount: " << shared.count() << std::endl;
   shared2 = std::move(shared);
-  std::cout << "sharedCount: " << shared2.count() << std::endl;
   EXPECT_TRUE(*shared2 == 42u);
   EXPECT_TRUE(shared2.exists());
   EXPECT_TRUE(shared2.count() == 1u);
