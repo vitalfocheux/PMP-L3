@@ -5,7 +5,14 @@
 #include <utility>
 #include <map>
 
+struct Counter {
+  std::size_t sharedCount = 1;
+  std::size_t weakCount = 0;
+};
+
 namespace sp {
+
+  template<class T> class Weak;
 
   /**
    * @brief Smart shared pointer class
@@ -18,51 +25,66 @@ namespace sp {
      */
     Shared(T* ptr = nullptr) : ptr(ptr){
       if(ptr != nullptr){
-        refCount = new std::size_t(1);
+        counter = new Counter();
       }
     }
 
-    Shared(const Shared<T>& other) : ptr(other.ptr), refCount(other.refCount){
+    Shared(const Shared<T>& other) : ptr(other.ptr), counter(other.counter){
       if(ptr != nullptr){
-        (*refCount)++;
+        counter->sharedCount++;
       }
     }
 
-    Shared(Shared<T>&& other) noexcept : ptr(other.ptr), refCount(other.refCount){
+    Shared(const Weak<T>& weak) : ptr(weak.ptr), counter(weak.counter) {
+      if(counter != nullptr){
+        counter->sharedCount++;
+      }
+    }
+
+    Shared(Shared<T>&& other) noexcept : ptr(other.ptr), counter(other.counter){
       other.ptr = nullptr;
-      other.refCount = 0;
+      other.counter = nullptr;
     }
 
     Shared<T>& operator=(const Shared<T>& other){
       if(this != &other){
         if(ptr != nullptr){
-          (*refCount)--;
-          if(*refCount == 0){
+          counter->sharedCount--;
+          if(counter->sharedCount == 0){
             delete ptr;
-            delete refCount;
+            ptr = nullptr;
+            delete counter;
+            counter = nullptr;
           }
         }
         ptr = other.ptr;
-        refCount = other.refCount;
-        (*refCount)++;
+        counter = other.counter;
+        counter->sharedCount++;
       }
       return *this;
     }
 
     Shared<T>& operator=(Shared<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
-      std::swap(refCount, other.refCount);
+      std::swap(counter, other.counter);
       // std::cout << "Shared move assignment " << *other.refCount << std::endl;
       return *this;
     }
 
     ~Shared(){
       // std::cout << "Shared destructor " << *refCount << std::endl;
-      if(ptr != nullptr){
-        --(*refCount);
-        if(*refCount == 0){
-          delete ptr;
-          delete refCount;
+      if(ptr == nullptr){
+        return;
+      }
+      
+      counter->sharedCount--;
+      std::cout << counter->sharedCount << std::endl;
+      if(counter->sharedCount <= 0){
+        delete ptr;
+        ptr = nullptr;
+        if(counter->weakCount == 0){
+          delete counter;
+          counter = nullptr;
         }
       }
     }
@@ -95,23 +117,43 @@ namespace sp {
       if(ptr == nullptr){
         return 0;
       }
-      return *refCount;
+      return counter->sharedCount;
     }
 
     /**
      * @brief  Check if the raw pointer exists
      */
     bool exists() const {
-      if(ptr == nullptr){
-        return false;
-      }
-      return *refCount > 0;
+      return ptr != nullptr;
+    }
+
+    /**
+     * @brief Check if the raw pointer exists
+     */
+    operator bool() const {
+      return ptr != nullptr;
+    }
+
+    /**
+     * @brief Release pointer ownership
+     */
+    void reset() {
     }
 
   private:
-    T* ptr;
-    std::size_t *refCount;
+    T* ptr = nullptr;
+    Counter *counter = nullptr;
+
+    template<typename U> friend class Weak;
   };
+
+  /**
+   * @brief Create a shared pointer
+   */
+  template<typename T, typename ... Args>
+  Shared<T> makeShared(Args&&... args) {
+    return Shared<T>(new T(std::forward<Args>(args)...));
+  }
 }
 
 #endif // SP_SHARED_H

@@ -58,9 +58,24 @@ namespace sp {
       return ptr != nullptr;
     }
 
+    /**
+     * @brief Check if the raw pointer exists
+     */
+    operator bool() const {
+      return exists();
+    }
+
   private:
     T* ptr;
   };
+
+  /**
+   * @brief Create a unique pointer
+   */
+  template<typename T, typename ... Args>
+  Unique<T> makeUnique(Args&&... args) {
+    return Unique<T>(new T(std::forward<Args>(args)...));
+  }
 }
 
 #endif // SP_UNIQUE_H

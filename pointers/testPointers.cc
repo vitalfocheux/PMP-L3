@@ -23,7 +23,8 @@ public:
 // }
 
 TEST(Unique, Init){
-  sp::Unique<int> unique(new int(42));
+  // sp::Unique<int> unique(new int(42));
+  sp::Unique<int> unique = sp::makeUnique<int>(42);
   EXPECT_TRUE(*unique == 42u);
   EXPECT_TRUE(unique.exists());
   EXPECT_TRUE(unique.get() != nullptr);
@@ -31,30 +32,37 @@ TEST(Unique, Init){
 }
 
 TEST(Unique, Arrow){
-  sp::Unique<Hello> unique(new Hello());
+  Hello h;
+  // sp::Unique<Hello> unique(new Hello());
+  sp::Unique<Hello> unique = sp::makeUnique<Hello>(h);
   EXPECT_TRUE(unique.exists());
   unique->printMessage();
 }
 
 TEST(Unique, Move_Constructor){
-  sp::Unique<int> unique(new int(42));
+  // sp::Unique<int> unique(new int(42));
+  sp::Unique<int> unique = sp::makeUnique<int>(42);
   sp::Unique<int> unique2(std::move(unique));
+  std::cout << *unique2 << std::endl;
   EXPECT_TRUE(*unique2 == 42u);
   EXPECT_FALSE(unique.exists());
   EXPECT_TRUE(unique2.exists());
 }
 
 TEST(Unique, Move_Assignement){
-  sp::Unique<int> unique(new int(42));
+  // sp::Unique<int> unique(new int(42));
+  sp::Unique<int> unique = sp::makeUnique<int>(42);
   sp::Unique<int> unique2;
   unique2 = std::move(unique);
   EXPECT_TRUE(*unique2 == 42u);
-  EXPECT_FALSE(unique.exists());
+  // EXPECT_FALSE(unique.exists());
+  EXPECT_FALSE(unique);
   EXPECT_TRUE(unique2.exists());
 }
 
 TEST(Unique, Simple_Operation){
-  sp::Unique<int> unique(new int(42));
+  // sp::Unique<int> unique(new int(42));
+  sp::Unique<int> unique = sp::makeUnique<int>(42);
   ++(*unique);
   EXPECT_TRUE(*unique == 43u);
   *unique /= 43;
@@ -68,8 +76,10 @@ TEST(Unique, Simple_Operation){
 }
 
 TEST(Unique, Logical_Operation){
-  sp::Unique<int> unique(new int(42));
-  sp::Unique<int> unique2(new int(42));
+  // sp::Unique<int> unique(new int(42));
+  // sp::Unique<int> unique2(new int(42));
+  sp::Unique<int> unique = sp::makeUnique<int>(42);
+  sp::Unique<int> unique2 = sp::makeUnique<int>(42);
   EXPECT_TRUE(*unique == *unique2);
   EXPECT_FALSE(*unique != *unique2);
   EXPECT_FALSE(*unique < *unique2);
@@ -82,78 +92,95 @@ TEST(Unique, Logical_Operation){
 }
 
 TEST(Unique, Logical_Or_Operation){
-  sp::Unique<bool> unique(new bool(true));
-  sp::Unique<bool> unique2(new bool(false));
+  // sp::Unique<bool> unique(new bool(true));
+  // sp::Unique<bool> unique2(new bool(false));
+  sp::Unique<bool> unique = sp::makeUnique<bool>(true);
+  sp::Unique<bool> unique2 = sp::makeUnique<bool>(false);
   EXPECT_TRUE(*unique || *unique2);
   EXPECT_TRUE(*unique || *unique);
   EXPECT_FALSE(*unique2 || *unique2);
 }
 
 TEST(Unique, Logical_And_Operation){
-  sp::Unique<bool> unique(new bool(true));
-  sp::Unique<bool> unique2(new bool(false));
+  // sp::Unique<bool> unique(new bool(true));
+  // sp::Unique<bool> unique2(new bool(false));
+  sp::Unique<bool> unique = sp::makeUnique<bool>(true);
+  sp::Unique<bool> unique2 = sp::makeUnique<bool>(false);
   EXPECT_FALSE(*unique && *unique2);
   EXPECT_TRUE(*unique && *unique);
   EXPECT_FALSE(*unique2 && *unique2);
 }
 
 TEST(Unique, Logical_Not_Operation){
-  sp::Unique<bool> unique(new bool(true));
-  sp::Unique<bool> unique2(new bool(false));
+  // sp::Unique<bool> unique(new bool(true));
+  // sp::Unique<bool> unique2(new bool(false));
+  sp::Unique<bool> unique = sp::makeUnique<bool>(true);
+  sp::Unique<bool> unique2 = sp::makeUnique<bool>(false);
   EXPECT_FALSE(!*unique);
   EXPECT_TRUE(!*unique2);
 }
 
 TEST(Unique, Logical_XOR_Operation){
-  sp::Unique<bool> unique(new bool(true));
-  sp::Unique<bool> unique2(new bool(false));
+  // sp::Unique<bool> unique(new bool(true));
+  // sp::Unique<bool> unique2(new bool(false));
+  sp::Unique<bool> unique = sp::makeUnique<bool>(true);
+  sp::Unique<bool> unique2 = sp::makeUnique<bool>(false);
   EXPECT_TRUE(*unique ^ *unique2);
   EXPECT_FALSE(*unique ^ *unique);
   EXPECT_FALSE(*unique2 ^ *unique2);
 }
 
 TEST(Unique, Multiple_Logical_Operation){
-  sp::Unique<bool> unique(new bool(true));
-  sp::Unique<bool> unique2(new bool(false));
+  // sp::Unique<bool> unique(new bool(true));
+  // sp::Unique<bool> unique2(new bool(false));
+  sp::Unique<bool> unique = sp::makeUnique<bool>(true);
+  sp::Unique<bool> unique2 = sp::makeUnique<bool>(false);
   EXPECT_TRUE((*unique || *unique2) && (*unique ^ *unique2));
 }
 
 TEST(Unique, iMAX){
-  sp::Unique<int> unique(new int(INT_MAX));
+  // sp::Unique<int> unique(new int(INT_MAX));
+  sp::Unique<int> unique = sp::makeUnique<int>(INT_MAX);
   EXPECT_TRUE(*unique == INT_MAX);
   ++(*unique);
   EXPECT_TRUE(*unique == INT_MIN);
 }
 
 TEST(Unique, iMIN){
-  sp::Unique<int> unique(new int(INT_MIN));
+  // sp::Unique<int> unique(new int(INT_MIN));
+  sp::Unique<int> unique = sp::makeUnique<int>(INT_MIN);
   EXPECT_TRUE(*unique == INT_MIN);
   --(*unique);
   EXPECT_TRUE(*unique == INT_MAX);
 }
 
 TEST(Unique, Pow){
-  sp::Unique<int> unique(new int(2));
+  // sp::Unique<int> unique(new int(2));
+  sp::Unique<int> unique = sp::makeUnique<int>(2);
   *unique = pow(*unique, 10);
   EXPECT_TRUE(*unique == 1024);
 }
 
 TEST(Unique, String){
-  sp::Unique<std::string> unique(new std::string("Hello"));
+  // sp::Unique<std::string> unique(new std::string("Hello"));
+  sp::Unique<std::string> unique = sp::makeUnique<std::string>("Hello");
   EXPECT_TRUE(*unique == "Hello");
   *unique += " World!";
   EXPECT_TRUE(*unique == "Hello World!");
 }
 
 TEST(Unique, Char){
-  sp::Unique<char> unique(new char('a'));
+  // sp::Unique<char> unique(new char('a'));
+  sp::Unique<char> unique = sp::makeUnique<char>('a');
   EXPECT_TRUE(*unique == 'a');
   ++(*unique);
   EXPECT_TRUE(*unique == 'b');
 }
 
 TEST(Unique, Vector_Int){
-  sp::Unique<std::vector<int>> unique(new std::vector<int>{1, 2, 3});
+  // sp::Unique<std::vector<int>> unique(new std::vector<int>{1, 2, 3});
+  std::vector<int> v{1,2,3};
+  sp::Unique<std::vector<int>> unique = sp::makeUnique<std::vector<int>>(v);
   EXPECT_TRUE((*unique)[0] == 1);
   EXPECT_TRUE((*unique)[1] == 2);
   EXPECT_TRUE((*unique)[2] == 3);
@@ -166,7 +193,9 @@ TEST(Unique, Vector_Int){
 }
 
 TEST(Unique, Vector_String){
-  sp::Unique<std::vector<std::string>> unique(new std::vector<std::string>{"Hello", " ", "World", "!"});
+  std::vector<std::string> v{"Hello", " ", "World", "!"};
+  // sp::Unique<std::vector<std::string>> unique(new std::vector<std::string>{"Hello", " ", "World", "!"});
+  sp::Unique<std::vector<std::string>> unique = sp::makeUnique<std::vector<std::string>>(v);
   std::string str = "";
   for(std::size_t i = 0; i < unique->size(); ++i){
     str += (*unique)[i];
@@ -175,7 +204,9 @@ TEST(Unique, Vector_String){
 }
 
 TEST(Unique, Vector_Char){
-  sp::Unique<std::vector<char>> unique(new std::vector<char>{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'});
+  std::vector<char> v{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'};
+  // sp::Unique<std::vector<char>> unique(new std::vector<char>{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'});
+  sp::Unique<std::vector<char>> unique = sp::makeUnique<std::vector<char>>(v);
   std::string str = "";
   for(std::size_t i = 0; i < unique->size(); ++i){
     str += (*unique)[i];
@@ -188,8 +219,12 @@ TEST(Unique, Vector_Char){
  * Référence: https://adventofcode.com/2023/day/9
 */
 TEST(Unique, Adjacent_Difference){
-  sp::Unique<std::vector<int>> unique(new std::vector<int>({10, 13, 16, 21, 30, 45}));
-  sp::Unique<std::vector<int>> differences(new std::vector<int>(unique->size()));
+  std::vector<int> v{10, 13, 16, 21, 30, 45};
+  // sp::Unique<std::vector<int>> unique(new std::vector<int>({10, 13, 16, 21, 30, 45}));
+  sp::Unique<std::vector<int>> unique = sp::makeUnique<std::vector<int>>(v);
+  // sp::Unique<std::vector<int>> differences(new std::vector<int>(unique->size()));
+  std::vector<int> v2(unique->size());
+  sp::Unique<std::vector<int>> differences = sp::makeUnique<std::vector<int>>(v2);
   while(unique->size() > 1){
     std::adjacent_difference(unique->begin(), unique->end(), differences->begin());
     *differences->erase(differences->begin());
@@ -226,7 +261,8 @@ TEST(Unique, Adjacent_Difference){
 // }
 
 TEST(Shared, Init){
-  sp::Shared<int> shared(new int(42));
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   EXPECT_TRUE(*shared == 42u);
   EXPECT_TRUE(shared.exists());
   EXPECT_TRUE(shared.get() != nullptr);
@@ -234,13 +270,16 @@ TEST(Shared, Init){
 }
 
 TEST(Shared, Arrow){
-  sp::Shared<Hello> shared(new Hello());
+  // sp::Shared<Hello> shared(new Hello());
+  Hello h;
+  sp::Shared<Hello> shared = sp::makeShared<Hello>(h);
   EXPECT_TRUE(shared.exists());
   shared->printMessage();
 }
 
 TEST(Shared, Copy_Constructor){
-  sp::Shared<int> shared(new int(42));
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2(shared);
   EXPECT_TRUE(*shared2 == 42u);
   EXPECT_TRUE(*shared == 42u);
@@ -251,7 +290,8 @@ TEST(Shared, Copy_Constructor){
 }
 
 TEST(Shared, Move_Constructor){
-  sp::Shared<int> shared(new int(42));
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2(std::move(shared));
   EXPECT_TRUE(*shared2 == 42u);
   EXPECT_FALSE(shared.exists());
@@ -260,7 +300,8 @@ TEST(Shared, Move_Constructor){
 }
 
 TEST(Shared, Copy_Assignment){
-  sp::Shared<int> shared(new int(42));
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2;
   shared2 = shared;
   EXPECT_TRUE(*shared2 == 42u);
@@ -272,7 +313,8 @@ TEST(Shared, Copy_Assignment){
 }
 
 TEST(Shared, Move_Assignment){
-  sp::Shared<int> shared(new int(42));
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2;
   shared2 = std::move(shared);
   EXPECT_TRUE(*shared2 == 42u);
@@ -280,32 +322,104 @@ TEST(Shared, Move_Assignment){
   EXPECT_TRUE(shared2.count() == 1u);
 }
 
+TEST(Shared, nullptr_){
+  sp::Shared<int> shared;
+  sp::Shared<int> shared2;
+  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_FALSE(shared.exists());
+  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_FALSE(shared2.exists());
+}
+
+TEST(Shared, nullptr_Copy_Assignement){
+  sp::Shared<int> shared;
+  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_FALSE(shared.exists());
+  sp::Shared<int> shared2 = shared;
+  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_FALSE(shared2.exists());
+}
+
+TEST(Shared, nullptr_Move_Assignment){
+  sp::Shared<int> shared;
+  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_FALSE(shared.exists());
+  sp::Shared<int> shared2 = std::move(shared);
+  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_FALSE(shared2.exists());
+}
+
+TEST(Shared, Simple_Operation){
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
+  EXPECT_TRUE(shared.exists());
+  EXPECT_TRUE(shared.count() == 1u);
+  sp::Shared<int> shared2 = shared;
+  EXPECT_TRUE(shared2.exists());
+  EXPECT_TRUE(shared2.count() == 2u);
+  EXPECT_TRUE(shared.count() == 2u);
+  EXPECT_TRUE(*shared == 42);
+  EXPECT_TRUE(*shared2 == 42);
+  *shared += 1;
+  EXPECT_TRUE(*shared == 43);
+  EXPECT_TRUE(*shared2 == 43);
+  *shared2 /= 43;
+  EXPECT_TRUE(*shared == 1);
+  EXPECT_TRUE(*shared2 == 1);
+  *shared *= 42;
+  EXPECT_TRUE(*shared == 42);
+  EXPECT_TRUE(*shared2 == 42);
+  *shared2 -= 42;
+  EXPECT_TRUE(*shared == 0);
+  EXPECT_TRUE(*shared2 == 0);
+  *shared = 2;
+  EXPECT_TRUE(*shared == 2);
+  EXPECT_TRUE(*shared2 == 2);
+}
+
+TEST(Shared, get){
+  // sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
+  sp::Shared<int> shared2 = shared;
+  EXPECT_TRUE(shared.get() == shared2.get());
+  EXPECT_TRUE(shared.get() != nullptr);
+  EXPECT_TRUE(shared2.get() != nullptr);
+}
+
 TEST(Exemple, Exemple){
-  sp::Unique<int> unique(new int(0));
+  // sp::Unique<int> unique(new int(0));
+  sp::Unique<int> unique = sp::makeUnique<int>(0);
   ++(*unique);
   EXPECT_TRUE(*unique == 1u);
 
-  sp::Shared<int> shared(new int(42));
+  sp::Shared<int> shared = sp::makeShared<int>(42);
   EXPECT_TRUE(*shared == 42);
 
-  // sp::Weak<int> weak1(shared);
-  // {
-  //   auto tmp = weak1.lock();
-  //   EXPECT_TRUE(tmp.exists());
-  //   (*tmp) /= 2;
-  //   EXPECT_TRUE(*tmp == 21);
-  // }
+  sp::Weak<int> weak1(shared);
+  {
+    auto tmp = weak1.lock();
+    EXPECT_TRUE(tmp.exists());
+    (*tmp) /= 2;
+    EXPECT_TRUE(*tmp == 21);
+  }
 
-  // shared = sp::Shared<int>(new int(1337));
-  // sp::Weak<int> weak2(shared);
-  // {
-  //   auto tmp = weak1.lock();
-  //   EXPECT_FALSE(tmp.exists());
+  shared = sp::makeShared<int>(1337);
+  sp::Weak<int> weak2(shared);
+  {
+    auto tmp = weak1.lock();
+    EXPECT_FALSE(tmp.exists());
     
-  //   tmp = weak2.lock();
-  //   EXPECT_TRUE(*tmp == 1337u);
-  // }
+    tmp = weak2.lock();
+    EXPECT_TRUE(*tmp == 1337u);
+  }
 }
+
+// TEST(t,t){
+//   std::vector<int> v{1, 2, 3};
+//   sp::Unique<std::vector<int>> t = sp::makeUnique<std::vector<int>>(v);
+//   sp::Unique<std::vector<int>> t2 = sp::makeUnique<std::vector<int>>(std::move(t));
+//   sp::Unique<std::vector<int>> t3 = std::move(t2);
+// }
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
