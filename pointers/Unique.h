@@ -65,6 +65,12 @@ namespace sp {
       return exists();
     }
 
+    /**
+     * @brief Release pointer ownership
+     */
+    void reset() {
+    }
+
   private:
     T* ptr;
   };

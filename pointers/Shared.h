@@ -131,7 +131,7 @@ namespace sp {
      * @brief Check if the raw pointer exists
      */
     operator bool() const {
-      return ptr != nullptr;
+      exists();
     }
 
     /**

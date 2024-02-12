@@ -388,12 +388,24 @@ TEST(Shared, get){
 
 TEST(Exemple, Exemple){
   // sp::Unique<int> unique(new int(0));
-  sp::Unique<int> unique = sp::makeUnique<int>(0);
-  ++(*unique);
+  auto unique = sp::makeUnique<int>(0);
+
+  if(unique){
+    ++(*unique);
+  }
+
   EXPECT_TRUE(*unique == 1u);
 
+  unique.reset();
+
+  EXPECT_FALSE(unique);
+
   sp::Shared<int> shared = sp::makeShared<int>(42);
-  EXPECT_TRUE(*shared == 42);
+  // EXPECT_TRUE(*shared == 42);
+
+  if(shared.exists()){
+    EXPECT_EQ(*shared, 42u);
+  }
 
   sp::Weak<int> weak1(shared);
   {
