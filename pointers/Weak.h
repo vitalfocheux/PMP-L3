@@ -59,19 +59,21 @@ namespace sp {
     Weak<T>& operator=(Weak<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       std::swap(counter, other.counter);
+      other.reset();
       return *this;
     }
 
     ~Weak(){
-      if(counter == nullptr){
-        return;
-      }
+      // if(counter == nullptr){
+      //   return;
+      // }
 
-      counter->weakCount--;
-      if(counter->weakCount == 0 && counter->sharedCount == 0){
-        delete counter;
-        counter = nullptr;
-      }
+      // counter->weakCount--;
+      // if(counter->weakCount == 0 && counter->sharedCount == 0){
+      //   delete counter;
+      //   counter = nullptr;
+      // }
+      decrement_counter();
     }
 
     /**
@@ -82,10 +84,10 @@ namespace sp {
      * retrun a non existing Shared pointeur.
      */
     Shared<T> lock() {
-      std::cout << (counter == nullptr) << " || " << (counter->sharedCount == 0) << std::endl;
-      if(counter != nullptr){
-        std::cout << counter->sharedCount << " " << counter->weakCount << std::endl;
-      }
+      // std::cout << (counter == nullptr) << " || " << (counter->sharedCount == 0) << std::endl;
+      // if(counter != nullptr){
+      //   std::cout << counter->sharedCount << " " << counter->weakCount << std::endl;
+      // }
       if(counter == nullptr || counter->sharedCount == 0){
         return Shared<T>();
       }
@@ -96,6 +98,10 @@ namespace sp {
      * @brief Clear the reference to the shared pointer
      */
     void reset() {
+      // ~Weak();
+      decrement_counter();
+      ptr = nullptr;
+      counter = nullptr;
     }
 
   private:
@@ -103,6 +109,18 @@ namespace sp {
     Counter* counter = nullptr;
 
     template<typename U> friend class Shared;
+
+    void decrement_counter(){
+      if(counter == nullptr){
+        return;
+      }
+
+      counter->weakCount--;
+      if(counter->weakCount == 0 && counter->sharedCount == 0){
+        delete counter;
+        counter = nullptr;
+      }
+    }
   };
 }
 

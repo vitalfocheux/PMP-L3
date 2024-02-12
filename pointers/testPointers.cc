@@ -433,6 +433,80 @@ TEST(Exemple, Exemple){
 //   sp::Unique<std::vector<int>> t3 = std::move(t2);
 // }
 
+TEST(Weak, Lock){
+  sp::Weak<int> weak;
+  EXPECT_FALSE(weak.lock());
+}
+
+TEST(Weak, Lock_True){
+  sp::Shared<int> shared = sp::makeShared<int>(1);
+  sp::Weak<int> weak(shared);
+  EXPECT_TRUE(weak.lock());
+  weak.reset();
+  EXPECT_FALSE(weak.lock());
+}
+
+TEST(Weak, Copy_Constructor){
+  sp::Shared<int> shared = sp::makeShared<int>(1);
+  sp::Weak<int> weak(shared);
+  sp::Weak<int> weak2(weak);
+  EXPECT_TRUE(weak.lock());
+  EXPECT_TRUE(weak2.lock());
+  auto tmp = weak.lock();
+  EXPECT_EQ(tmp.count(), 2u);
+  EXPECT_EQ(*tmp, 1u);
+  auto tmp2 = weak2.lock();
+  EXPECT_EQ(tmp2.count(), 3u);
+  EXPECT_EQ(*tmp2, 1u);
+}
+
+TEST(Weak, Move_Construtor){
+  sp::Shared<int> shared = sp::makeShared<int>(1);
+  sp::Weak<int> weak(shared);
+  sp::Weak<int> weak2(std::move(weak));
+  EXPECT_FALSE(weak.lock());
+  EXPECT_TRUE(weak2.lock());
+}
+
+TEST(Weak, Copy_Assignment){
+  sp::Shared<int> sp1 = sp::makeShared<int>(1);
+  sp::Shared<int> sp2 = sp::makeShared<int>(2);
+  sp::Weak<int> wp1(sp1);
+  sp::Weak<int> wp2(sp2);
+  sp::Weak<int> wp3;
+  wp3 = wp1;
+  EXPECT_TRUE(wp1.lock());
+  EXPECT_TRUE(wp3.lock());
+  wp3 = wp2;
+  EXPECT_TRUE(wp2.lock());
+  EXPECT_TRUE(wp3.lock());
+}
+
+TEST(Weak, Move_Assignment){
+  sp::Shared<int> sp1 = sp::makeShared<int>(1);
+  sp::Shared<int> sp2 = sp::makeShared<int>(1);
+  sp::Weak<int> wp1(sp1);
+  sp::Weak<int> wp2(sp1);
+  sp::Weak<int> wp3;
+  wp3 = std::move(wp1);
+  EXPECT_FALSE(wp1.lock());
+  EXPECT_TRUE(wp3.lock());
+  wp3 = std::move(wp2);
+  EXPECT_FALSE(wp2.lock());
+  EXPECT_TRUE(wp3.lock());
+}
+
+TEST(Weak, Reset){
+   sp::Shared<int> sp1 = sp::makeShared<int>(1);
+    sp::Weak<int> wp(sp1);
+    {
+        auto sp2 = wp.lock();
+        EXPECT_TRUE(sp2);
+    }
+    sp1.reset();
+    EXPECT_FALSE(wp.lock());
+}
+
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

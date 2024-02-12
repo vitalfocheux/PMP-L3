@@ -67,26 +67,28 @@ namespace sp {
     Shared<T>& operator=(Shared<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       std::swap(counter, other.counter);
+      // other.reset();
       // std::cout << "Shared move assignment " << *other.refCount << std::endl;
       return *this;
     }
 
     ~Shared(){
-      // std::cout << "Shared destructor " << *refCount << std::endl;
-      if(ptr == nullptr){
-        return;
-      }
+      // // std::cout << "Shared destructor " << *refCount << std::endl;
+      // if(ptr == nullptr){
+      //   return;
+      // }
       
-      counter->sharedCount--;
-      std::cout << counter->sharedCount << std::endl;
-      if(counter->sharedCount <= 0){
-        delete ptr;
-        ptr = nullptr;
-        if(counter->weakCount == 0){
-          delete counter;
-          counter = nullptr;
-        }
-      }
+      // counter->sharedCount--;
+      // // std::cout << counter->sharedCount << std::endl;
+      // if(counter->sharedCount <= 0){
+      //   delete ptr;
+      //   ptr = nullptr;
+      //   if(counter->weakCount == 0){
+      //     delete counter;
+      //     counter = nullptr;
+      //   }
+      // }
+      decrement_counter();
     }
 
     /**
@@ -131,13 +133,17 @@ namespace sp {
      * @brief Check if the raw pointer exists
      */
     operator bool() const {
-      exists();
+      return exists();
     }
 
     /**
      * @brief Release pointer ownership
      */
     void reset() {
+      // ~Shared();
+      decrement_counter();
+      ptr = nullptr;
+      counter = nullptr;
     }
 
   private:
@@ -145,6 +151,23 @@ namespace sp {
     Counter *counter = nullptr;
 
     template<typename U> friend class Weak;
+
+    void decrement_counter(){
+      if(ptr == nullptr){
+        return;
+      }
+      
+      counter->sharedCount--;
+      // std::cout << counter->sharedCount << std::endl;
+      if(counter->sharedCount <= 0){
+        delete ptr;
+        ptr = nullptr;
+        if(counter->weakCount == 0){
+          delete counter;
+          counter = nullptr;
+        }
+      }
+    }
   };
 
   /**

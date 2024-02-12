@@ -27,6 +27,7 @@ namespace sp {
     ~Unique(){
       if(exists()){
         delete ptr;
+        ptr = nullptr;
       }
     }
 
@@ -69,10 +70,14 @@ namespace sp {
      * @brief Release pointer ownership
      */
     void reset() {
+      if(exists()){
+        delete ptr;
+        ptr = nullptr;
+      }
     }
 
   private:
-    T* ptr;
+    T* ptr = nullptr;
   };
 
   /**
