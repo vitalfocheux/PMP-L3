@@ -59,7 +59,9 @@ namespace sp {
         }
         ptr = other.ptr;
         counter = other.counter;
-        counter->sharedCount++;
+        if(counter != nullptr){
+          counter->sharedCount++;
+        }
       }
       return *this;
     }

@@ -51,7 +51,9 @@ namespace sp {
         }
         ptr = other.ptr;
         counter = other.counter;
-        counter->weakCount++;
+        if(counter != nullptr){
+          counter->weakCount++;
+        }
       }
       return *this;
     }
