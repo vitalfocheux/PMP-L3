@@ -20,8 +20,8 @@ TEST(Unique, Init){
   sp::Unique<int> unique = sp::makeUnique<int>(42);
   EXPECT_TRUE(*unique == 42u);
   EXPECT_TRUE(unique);
-  EXPECT_TRUE(unique.get() != nullptr);
-  EXPECT_TRUE(*unique.get() == 42u);
+  EXPECT_NE(unique.get(), nullptr);
+  EXPECT_EQ(*unique.get(), 42u);
 }
 
 TEST(Unique, Arrow){
@@ -40,16 +40,16 @@ TEST(Unique, Reset){
 
 TEST(Unique, Get){
   sp::Unique<int> unique = sp::makeUnique<int>(42);
-  EXPECT_TRUE(unique.get() != nullptr);
+  EXPECT_NE(unique.get(), nullptr);
   EXPECT_EQ(*(unique.get()), 42u);
   unique.reset();
-  EXPECT_TRUE(unique.get() == nullptr);
+  EXPECT_EQ(unique.get(), nullptr);
 }
 
 TEST(Unique, Get_Reference){
   int *i = new int(42);
   sp::Unique<int> unique(i);
-  EXPECT_TRUE(unique.get() == i);
+  EXPECT_EQ(unique.get(), i);
 }
 
 TEST(Unique, Exists){
@@ -62,8 +62,7 @@ TEST(Unique, Exists){
 TEST(Unique, Move_Constructor){
   sp::Unique<int> unique = sp::makeUnique<int>(42);
   sp::Unique<int> unique2(std::move(unique));
-  std::cout << *unique2 << std::endl;
-  EXPECT_TRUE(*unique2 == 42u);
+  EXPECT_EQ(*unique2, 42u);
   EXPECT_FALSE(unique);
   EXPECT_TRUE(unique2);
 }
@@ -72,7 +71,7 @@ TEST(Unique, Move_Assignement){
   sp::Unique<int> unique = sp::makeUnique<int>(42);
   sp::Unique<int> unique2;
   unique2 = std::move(unique);
-  EXPECT_TRUE(*unique2 == 42u);
+  EXPECT_EQ(*unique2, 42u);
   EXPECT_FALSE(unique);
   EXPECT_TRUE(unique2);
 }
@@ -97,15 +96,15 @@ TEST(Unique, Reset_And_Move_Assignment){
 TEST(Unique, Simple_Operation){
   sp::Unique<int> unique = sp::makeUnique<int>(42);
   ++(*unique);
-  EXPECT_TRUE(*unique == 43u);
+  EXPECT_EQ(*unique, 43u);
   *unique /= 43;
-  EXPECT_TRUE(*unique == 1u);
+  EXPECT_EQ(*unique, 1u);
   *unique *= 42;
-  EXPECT_TRUE(*unique == 42u);
+  EXPECT_EQ(*unique, 42u);
   *unique -= 42;
-  EXPECT_TRUE(*unique == 0u);
+  EXPECT_EQ(*unique, 0u);
   *unique = 2;
-  EXPECT_TRUE(*unique == 2u);
+  EXPECT_EQ(*unique, 2u);
 }
 
 TEST(Unique, Logical_Operation){
@@ -170,53 +169,53 @@ TEST(Unique, Multiple_Logical_Operation){
 
 TEST(Unique, iMAX){
   sp::Unique<int> unique = sp::makeUnique<int>(INT_MAX);
-  EXPECT_TRUE(*unique == INT_MAX);
+  EXPECT_EQ(*unique, INT_MAX);
   ++(*unique);
-  EXPECT_TRUE(*unique == INT_MIN);
+  EXPECT_EQ(*unique, INT_MIN);
 }
 
 TEST(Unique, iMIN){
   sp::Unique<int> unique = sp::makeUnique<int>(INT_MIN);
-  EXPECT_TRUE(*unique == INT_MIN);
+  EXPECT_EQ(*unique, INT_MIN);
   --(*unique);
-  EXPECT_TRUE(*unique == INT_MAX);
+  EXPECT_EQ(*unique, INT_MAX);
 }
 
 TEST(Unique, Pow){
   sp::Unique<int> unique = sp::makeUnique<int>(2);
   *unique = pow(*unique, 10);
-  EXPECT_TRUE(*unique == 1024);
+  EXPECT_EQ(*unique, 1024u);
   EXPECT_TRUE(unique);
 }
 
 TEST(Unique, String){
   sp::Unique<std::string> unique = sp::makeUnique<std::string>("Hello");
-  EXPECT_TRUE(*unique == "Hello");
+  EXPECT_EQ(*unique, "Hello");
   *unique += " World!";
-  EXPECT_TRUE(*unique == "Hello World!");
+  EXPECT_EQ(*unique, "Hello World!");
   EXPECT_TRUE(unique);
 }
 
 TEST(Unique, Char){
   sp::Unique<char> unique = sp::makeUnique<char>('a');
-  EXPECT_TRUE(*unique == 'a');
+  EXPECT_EQ(*unique, 'a');
   ++(*unique);
-  EXPECT_TRUE(*unique == 'b');
+  EXPECT_EQ(*unique, 'b');
   EXPECT_TRUE(unique);
 }
 
 TEST(Unique, Vector_Int){
   std::vector<int> v{1,2,3};
   sp::Unique<std::vector<int>> unique = sp::makeUnique<std::vector<int>>(v);
-  EXPECT_TRUE((*unique)[0] == 1);
-  EXPECT_TRUE((*unique)[1] == 2);
-  EXPECT_TRUE((*unique)[2] == 3);
+  EXPECT_EQ((*unique)[0], 1);
+  EXPECT_EQ((*unique)[1], 2);
+  EXPECT_EQ((*unique)[2], 3);
   (*unique)[0] = 4;
   (*unique)[1] = 5;
   (*unique)[2] = 6;
-  EXPECT_TRUE((*unique)[0] == 4);
-  EXPECT_TRUE((*unique)[1] == 5);
-  EXPECT_TRUE((*unique)[2] == 6);
+  EXPECT_EQ((*unique)[0], 4);
+  EXPECT_EQ((*unique)[1], 5);
+  EXPECT_EQ((*unique)[2], 6);
   EXPECT_TRUE(unique);
 }
 
@@ -227,7 +226,7 @@ TEST(Unique, Vector_String){
   for(std::size_t i = 0; i < unique->size(); ++i){
     str += (*unique)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   EXPECT_TRUE(unique);
 }
 
@@ -238,7 +237,7 @@ TEST(Unique, Vector_Char){
   for(std::size_t i = 0; i < unique->size(); ++i){
     str += (*unique)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   EXPECT_TRUE(unique);
 }
 
@@ -255,12 +254,12 @@ TEST(Unique, Adjacent_Difference){
     std::adjacent_difference(unique->begin(), unique->end(), differences->begin());
     *differences->erase(differences->begin());
     for(std::size_t i = 0; i < unique->size()-1; ++i){
-      EXPECT_TRUE((*differences)[i] == (*unique)[i+1] - (*unique)[i]);
+      EXPECT_EQ((*differences)[i], (*unique)[i+1] - (*unique)[i]);
     }
     *unique = *differences;
   }
   for(const auto& diff : *differences){
-    EXPECT_TRUE(diff == 0u);
+    EXPECT_EQ(diff, 0u);
   }
   EXPECT_TRUE(unique);
   EXPECT_TRUE(differences);
@@ -268,10 +267,10 @@ TEST(Unique, Adjacent_Difference){
 
 TEST(Shared, Init){
   sp::Shared<int> shared = sp::makeShared<int>(42);
-  EXPECT_TRUE(*shared == 42u);
+  EXPECT_EQ(*shared, 42u);
   EXPECT_TRUE(shared);
-  EXPECT_TRUE(shared.get() != nullptr);
-  EXPECT_TRUE(*shared.get() == 42u);
+  EXPECT_NE(shared.get(), nullptr);
+  EXPECT_EQ(*shared.get(), 42u);
 }
 
 TEST(Shared, Arrow){
@@ -284,96 +283,96 @@ TEST(Shared, Arrow){
 TEST(Shared, Copy_Constructor){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2(shared);
-  EXPECT_TRUE(*shared2 == 42u);
-  EXPECT_TRUE(*shared == 42u);
+  EXPECT_EQ(*shared2, 42u);
+  EXPECT_EQ(*shared, 42u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
-  EXPECT_TRUE(shared.count() == 2u);
-  EXPECT_TRUE(shared2.count() == 2u);
+  EXPECT_EQ(shared.count(), 2u);
+  EXPECT_EQ(shared2.count(), 2u);
 }
 
 TEST(Shared, Move_Constructor){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2(std::move(shared));
-  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_EQ(*shared2, 42u);
   EXPECT_FALSE(shared);
   EXPECT_TRUE(shared2);
-  EXPECT_TRUE(shared2.count() == 1u);
+  EXPECT_EQ(shared2.count(), 1u);
 }
 
 TEST(Shared, Copy_Assignment){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2;
   shared2 = shared;
-  EXPECT_TRUE(*shared2 == 42u);
-  EXPECT_TRUE(*shared == 42u);
+  EXPECT_EQ(*shared2, 42u);
+  EXPECT_EQ(*shared, 42u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
-  EXPECT_TRUE(shared.count() == 2u);
-  EXPECT_TRUE(shared2.count() == 2u);
+  EXPECT_EQ(shared.count(), 2u);
+  EXPECT_EQ(shared2.count(), 2u);
 }
 
 TEST(Shared, Move_Assignment){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2;
   shared2 = std::move(shared);
-  EXPECT_TRUE(*shared2 == 42u);
+  EXPECT_EQ(*shared2, 42u);
   EXPECT_TRUE(shared2);
-  EXPECT_TRUE(shared2.count() == 1u);
+  EXPECT_EQ(shared2.count(), 1u);
 }
 
 TEST(Shared, nullptr_){
   sp::Shared<int> shared;
   sp::Shared<int> shared2;
-  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_EQ(shared.count(), 0u);
   EXPECT_FALSE(shared);
-  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_EQ(shared2.count(), 0u);
   EXPECT_FALSE(shared2);
 }
 
 TEST(Shared, nullptr_Copy_Assignement){
   sp::Shared<int> shared;
-  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_EQ(shared.count(), 0u);
   EXPECT_FALSE(shared);
   sp::Shared<int> shared2 = shared;
-  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_EQ(shared2.count(), 0u);
   EXPECT_FALSE(shared2);
 }
 
 TEST(Shared, nullptr_Move_Assignment){
   sp::Shared<int> shared;
-  EXPECT_TRUE(shared.count() == 0u);
+  EXPECT_EQ(shared.count(), 0u);
   EXPECT_FALSE(shared);
   sp::Shared<int> shared2 = std::move(shared);
-  EXPECT_TRUE(shared2.count() == 0u);
+  EXPECT_EQ(shared2.count(), 0u);
   EXPECT_FALSE(shared2);
 }
 
 TEST(Shared, Simple_Operation){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   EXPECT_TRUE(shared);
-  EXPECT_TRUE(shared.count() == 1u);
+  EXPECT_EQ(shared.count(), 1u);
   sp::Shared<int> shared2 = shared;
   EXPECT_TRUE(shared2);
-  EXPECT_TRUE(shared2.count() == 2u);
-  EXPECT_TRUE(shared.count() == 2u);
-  EXPECT_TRUE(*shared == 42);
-  EXPECT_TRUE(*shared2 == 42);
+  EXPECT_EQ(shared2.count(), 2u);
+  EXPECT_EQ(shared.count(), 2u);
+  EXPECT_EQ(*shared, 42u);
+  EXPECT_EQ(*shared2, 42u);
   *shared += 1;
-  EXPECT_TRUE(*shared == 43);
-  EXPECT_TRUE(*shared2 == 43);
+  EXPECT_EQ(*shared, 43u);
+  EXPECT_EQ(*shared2, 43u);
   *shared2 /= 43;
-  EXPECT_TRUE(*shared == 1);
-  EXPECT_TRUE(*shared2 == 1);
+  EXPECT_EQ(*shared, 1u);
+  EXPECT_EQ(*shared2, 1u);
   *shared *= 42;
-  EXPECT_TRUE(*shared == 42);
-  EXPECT_TRUE(*shared2 == 42);
+  EXPECT_EQ(*shared, 42u);
+  EXPECT_EQ(*shared2, 42u);
   *shared2 -= 42;
-  EXPECT_TRUE(*shared == 0);
-  EXPECT_TRUE(*shared2 == 0);
+  EXPECT_EQ(*shared, 0u);
+  EXPECT_EQ(*shared2, 0u);
   *shared = 2;
-  EXPECT_TRUE(*shared == 2);
-  EXPECT_TRUE(*shared2 == 2);
+  EXPECT_EQ(*shared, 2u);
+  EXPECT_EQ(*shared2, 2u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
 }
@@ -454,8 +453,8 @@ TEST(Shared, Pow){
   sp::Shared<int> shared = sp::makeShared<int>(2);
   sp::Shared<int> shared2 = shared;
   *shared = pow(*shared, 10);
-  EXPECT_TRUE(*shared == 1024);
-  EXPECT_TRUE(*shared2 == 1024);
+  EXPECT_EQ(*shared, 1024u);
+  EXPECT_EQ(*shared2, 1024u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -465,11 +464,11 @@ TEST(Shared, Pow){
 TEST(Shared, String){
   sp::Shared<std::string> shared = sp::makeShared<std::string>("Hello");
   sp::Shared<std::string> shared2 = shared;
-  EXPECT_TRUE(*shared == "Hello");
-  EXPECT_TRUE(*shared2 == "Hello");
+  EXPECT_EQ(*shared, "Hello");
+  EXPECT_EQ(*shared2, "Hello");
   *shared += " World!";
-  EXPECT_TRUE(*shared == "Hello World!");
-  EXPECT_TRUE(*shared2 == "Hello World!");
+  EXPECT_EQ(*shared, "Hello World!");
+  EXPECT_EQ(*shared2, "Hello World!");
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -479,11 +478,11 @@ TEST(Shared, String){
 TEST(Shared, Char){
   sp::Shared<char> shared = sp::makeShared<char>('a');
   sp::Shared<char> shared2 = shared;
-  EXPECT_TRUE(*shared == 'a');
-  EXPECT_TRUE(*shared2 == 'a');
+  EXPECT_EQ(*shared, 'a');
+  EXPECT_EQ(*shared2, 'a');
   ++(*shared);
-  EXPECT_TRUE(*shared == 'b');
-  EXPECT_TRUE(*shared2 == 'b');
+  EXPECT_EQ(*shared, 'b');
+  EXPECT_EQ(*shared2, 'b');
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -494,21 +493,21 @@ TEST(Shared, Vector_Int){
   std::vector<int> v{1,2,3};
   sp::Shared<std::vector<int>> shared = sp::makeShared<std::vector<int>>(v);
   sp::Shared<std::vector<int>> shared2 = shared;
-  EXPECT_TRUE((*shared)[0] == 1);
-  EXPECT_TRUE((*shared)[1] == 2);
-  EXPECT_TRUE((*shared)[2] == 3);
-  EXPECT_TRUE((*shared2)[0] == 1);
-  EXPECT_TRUE((*shared2)[1] == 2);
-  EXPECT_TRUE((*shared2)[2] == 3);
+  EXPECT_EQ((*shared)[0],1u);
+  EXPECT_EQ((*shared)[1], 2u);
+  EXPECT_EQ((*shared)[2], 3u);
+  EXPECT_EQ((*shared2)[0], 1u);
+  EXPECT_EQ((*shared2)[1], 2u);
+  EXPECT_EQ((*shared2)[2], 3u);
   (*shared)[0] = 4;
   (*shared)[1] = 5;
   (*shared)[2] = 6;
-  EXPECT_TRUE((*shared)[0] == 4);
-  EXPECT_TRUE((*shared)[1] == 5);
-  EXPECT_TRUE((*shared)[2] == 6);
-  EXPECT_TRUE((*shared2)[0] == 4);
-  EXPECT_TRUE((*shared2)[1] == 5);
-  EXPECT_TRUE((*shared2)[2] == 6);
+  EXPECT_EQ((*shared)[0], 4u);
+  EXPECT_EQ((*shared)[1], 5u);
+  EXPECT_EQ((*shared)[2], 6u);
+  EXPECT_EQ((*shared2)[0], 4u);
+  EXPECT_EQ((*shared2)[1], 5u);
+  EXPECT_EQ((*shared2)[2], 6u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -523,12 +522,12 @@ TEST(Shared, Vector_String){
   for(std::size_t i = 0; i < shared->size(); ++i){
     str += (*shared)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   str = "";
   for(std::size_t i = 0; i < shared->size(); ++i){
     str += (*shared2)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -543,12 +542,12 @@ TEST(Shared, Vector_Char){
   for(std::size_t i = 0; i < shared->size(); ++i){
     str += (*shared)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   str = "";
   for(std::size_t i = 0; i < shared->size(); ++i){
     str += (*shared2)[i];
   }
-  EXPECT_TRUE(str == "Hello World!");
+  EXPECT_EQ(str, "Hello World!");
   EXPECT_TRUE(shared);
   EXPECT_TRUE(shared2);
   EXPECT_EQ(shared.count(), 2u);
@@ -558,9 +557,9 @@ TEST(Shared, Vector_Char){
 TEST(Shared, Get){
   sp::Shared<int> shared = sp::makeShared<int>(42);
   sp::Shared<int> shared2 = shared;
-  EXPECT_TRUE(shared.get() == shared2.get());
-  EXPECT_TRUE(shared.get() != nullptr);
-  EXPECT_TRUE(shared2.get() != nullptr);
+  EXPECT_EQ(shared.get(), shared2.get());
+  EXPECT_NE(shared.get(), nullptr);
+  EXPECT_NE(shared2.get(), nullptr);
   EXPECT_EQ(*shared.get(), 42u);
   EXPECT_EQ(*shared2.get(), 42u);
   EXPECT_EQ(shared.count(), 2u);
@@ -634,7 +633,7 @@ TEST(Exemple, Exemple){
     ++(*unique);
   }
 
-  EXPECT_TRUE(*unique == 1u);
+  EXPECT_EQ(*unique, 1u);
 
   unique.reset();
 
@@ -651,7 +650,7 @@ TEST(Exemple, Exemple){
     auto tmp = weak1.lock();
     EXPECT_TRUE(tmp);
     (*tmp) /= 2;
-    EXPECT_TRUE(*tmp == 21);
+    EXPECT_EQ(*tmp, 21);
   }
 
   shared = sp::makeShared<int>(1337);
@@ -661,7 +660,7 @@ TEST(Exemple, Exemple){
     EXPECT_FALSE(tmp);
     
     tmp = weak2.lock();
-    EXPECT_TRUE(*tmp == 1337u);
+    EXPECT_EQ(*tmp, 1337u);
   }
 }
 
@@ -831,22 +830,22 @@ TEST(Weak, Simple_Operation){
   EXPECT_TRUE(shared);
   EXPECT_EQ(shared.count(), 2u);
   EXPECT_EQ(tmp.count(), 2u);
-  EXPECT_TRUE(*tmp == 42);
+  EXPECT_EQ(*tmp, 42u);
   *tmp += 1;
-  EXPECT_TRUE(*tmp == 43);
-  EXPECT_TRUE(*shared == 43);
+  EXPECT_EQ(*tmp, 43u);
+  EXPECT_EQ(*shared, 43u);
   *tmp /= 43;
-  EXPECT_TRUE(*tmp == 1);
-  EXPECT_TRUE(*shared == 1);
+  EXPECT_EQ(*tmp, 1u);
+  EXPECT_EQ(*shared, 1u);
   *tmp *= 42;
-  EXPECT_TRUE(*tmp == 42);
-  EXPECT_TRUE(*shared == 42);
+  EXPECT_EQ(*tmp, 42u);
+  EXPECT_EQ(*shared, 42u);
   *tmp -= 42;
-  EXPECT_TRUE(*tmp == 0);
-  EXPECT_TRUE(*shared == 0);
+  EXPECT_EQ(*tmp, 0u);
+  EXPECT_EQ(*shared, 0u);
   *tmp = 2;
-  EXPECT_TRUE(*tmp == 2);
-  EXPECT_TRUE(*shared == 2);
+  EXPECT_EQ(*tmp, 2u);
+  EXPECT_EQ(*shared, 2u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(tmp);
   EXPECT_EQ(shared.count(), 2u);
@@ -975,7 +974,7 @@ TEST(Weak, Pow){
   sp::Weak<int> weak(shared);
   auto tmp = weak.lock();
   *tmp = pow(*tmp, 10);
-  EXPECT_TRUE(*tmp == 1024);
+  EXPECT_EQ(*tmp, 1024u);
   EXPECT_TRUE(shared);
   EXPECT_TRUE(tmp);
   EXPECT_EQ(shared.count(), 2u);
