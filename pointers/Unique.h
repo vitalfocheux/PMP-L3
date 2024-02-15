@@ -16,9 +16,17 @@ namespace sp {
     }
 
     Unique(const Unique<T>&) = delete;
+
+    /**
+     * @brief Move constructor
+     */
     Unique(Unique<T>&& other) noexcept : ptr(std::exchange(other.ptr, nullptr)){ }
 
     Unique<T>& operator=(const Unique<T>&) = delete;
+
+    /**
+     * @brief Move assignment operator
+     */
     Unique<T>& operator=(Unique<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       return *this;

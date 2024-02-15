@@ -15,9 +15,6 @@ namespace sp {
      * @brief Default constructor
      */
     Weak() {
-      // ptr = nullptr;
-      // refCount = nullptr;
-      // weakCount = nullptr;
     }
 
     /**
@@ -29,17 +26,26 @@ namespace sp {
       }
     }
 
+    /**
+     * @brief Copy constructor
+     */
     Weak(const Weak<T>&  other) : ptr(other.ptr), counter(other.counter){
       if(counter != nullptr){
         counter->weakCount++;
       }
     }
 
+    /**
+     * @brief Move constructor
+     */
     Weak(Weak<T>&& other) noexcept : ptr(other.ptr), counter(other.counter){
       other.ptr = nullptr;
       other.counter = nullptr;
     }
 
+    /**
+     * @brief Copy assignment operator
+     */
     Weak<T>& operator=(const Weak<T>& other){
       if(this != &other){
         if(counter != nullptr){
@@ -58,6 +64,9 @@ namespace sp {
       return *this;
     }
 
+    /**
+     * @brief Move assignment operator
+     */
     Weak<T>& operator=(Weak<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       std::swap(counter, other.counter);
@@ -65,16 +74,10 @@ namespace sp {
       return *this;
     }
 
+    /**
+     * @brief Destructor
+     */
     ~Weak(){
-      // if(counter == nullptr){
-      //   return;
-      // }
-
-      // counter->weakCount--;
-      // if(counter->weakCount == 0 && counter->sharedCount == 0){
-      //   delete counter;
-      //   counter = nullptr;
-      // }
       decrement_counter();
     }
 
@@ -100,7 +103,6 @@ namespace sp {
      * @brief Clear the reference to the shared pointer
      */
     void reset() {
-      // ~Weak();
       decrement_counter();
       ptr = nullptr;
       counter = nullptr;
@@ -112,6 +114,9 @@ namespace sp {
 
     template<typename U> friend class Shared;
 
+    /**
+     * @brief Decrement the weak counter
+    */
     void decrement_counter(){
       if(counter == nullptr){
         return;

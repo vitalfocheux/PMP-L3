@@ -29,23 +29,35 @@ namespace sp {
       }
     }
 
+    /**
+     * @brief Copy constructor
+    */
     Shared(const Shared<T>& other) : ptr(other.ptr), counter(other.counter){
       if(ptr != nullptr){
         counter->sharedCount++;
       }
     }
 
+    /**
+     * @brief Copy constructor from a weak pointer
+    */
     Shared(const Weak<T>& weak) : ptr(weak.ptr), counter(weak.counter) {
       if(counter != nullptr){
         counter->sharedCount++;
       }
     }
 
+    /**
+     * @brief Move constructor
+     */
     Shared(Shared<T>&& other) noexcept : ptr(other.ptr), counter(other.counter){
       other.ptr = nullptr;
       other.counter = nullptr;
     }
 
+    /**
+     * @brief Copy assignment operator
+     */
     Shared<T>& operator=(const Shared<T>& other){
       if(this != &other){
         if(ptr != nullptr){
@@ -66,30 +78,19 @@ namespace sp {
       return *this;
     }
 
+    /**
+     * @brief Move assignment operator
+     */
     Shared<T>& operator=(Shared<T>&& other) noexcept{
       std::swap(ptr, other.ptr);
       std::swap(counter, other.counter);
-      // other.reset();
-      // std::cout << "Shared move assignment " << *other.refCount << std::endl;
       return *this;
     }
 
+    /**
+     * @brief Destructor
+     */
     ~Shared(){
-      // // std::cout << "Shared destructor " << *refCount << std::endl;
-      // if(ptr == nullptr){
-      //   return;
-      // }
-      
-      // counter->sharedCount--;
-      // // std::cout << counter->sharedCount << std::endl;
-      // if(counter->sharedCount <= 0){
-      //   delete ptr;
-      //   ptr = nullptr;
-      //   if(counter->weakCount == 0){
-      //     delete counter;
-      //     counter = nullptr;
-      //   }
-      // }
       decrement_counter();
     }
 
@@ -142,7 +143,6 @@ namespace sp {
      * @brief Release pointer ownership
      */
     void reset() {
-      // ~Shared();
       decrement_counter();
       ptr = nullptr;
       counter = nullptr;
@@ -154,13 +154,15 @@ namespace sp {
 
     template<typename U> friend class Weak;
 
+    /**
+     * @brief Decrement the shared counter
+     */
     void decrement_counter(){
       if(ptr == nullptr){
         return;
       }
       
       counter->sharedCount--;
-      // std::cout << counter->sharedCount << std::endl;
       if(counter->sharedCount <= 0){
         delete ptr;
         ptr = nullptr;
