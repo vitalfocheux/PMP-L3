@@ -1,2 +1,4 @@
-pointers/build
+build/
+*.tar.gz
+prepare*
 .vscode
