@@ -62,6 +62,7 @@ namespace voc {
      */
     template<typename T>
     Any(T&& value) {
+      std::cout << "Any(T&& value)" << std::endl;
       content = new details::HelperGeneric<T>(std::forward<T>(value));
     }
 
@@ -140,14 +141,10 @@ namespace voc {
   template<typename T>
   T anyCast(const Any& any) {
     std::cout << "anyCast(const Any& any)" << std::endl;
-    if(!any.hasValue()){
+    if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
-    T result = const_cast<details::HelperGeneric<T>*>(any.content)->value;
-    if(std::is_null_pointer_v<decltype(result)>){ //regarder si (any.content)->value est du même type que T
-      throw std::bad_cast();
-    }
-    return result;
+    return static_cast<details::HelperGeneric<T>*>(any.content)->value;
   }
 
   /*
@@ -156,11 +153,10 @@ namespace voc {
   template<typename T>
   T anyCast(Any& any) {
     std::cout << "anyCast(Any& any)" << std::endl;
-    T result = static_cast<details::HelperGeneric<T>*>(any.content)->value;
-    if(std::is_null_pointer_v<decltype(result)>){
+    if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
-    return result;
+    return static_cast<details::HelperGeneric<T>*>(any.content)->value;
   }
 
   /*
@@ -169,7 +165,10 @@ namespace voc {
   template<typename T>
   T anyCast(Any&& any) {
     std::cout << "anyCast(Any&& any)" << std::endl;
-    return T();
+    if(!any.hasValue() || any.getType() != typeid(T)){
+      throw std::bad_cast();
+    }
+    return std::move(static_cast<details::HelperGeneric<T>*>(any.content)->value);
   }
 
   /*
