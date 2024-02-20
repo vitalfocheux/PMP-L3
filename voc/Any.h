@@ -55,7 +55,7 @@ namespace voc {
 
     Any(const Any& other);
 
-    Any(Any&& other);
+    Any(Any&& other) noexcept;
 
     /*
      * Create an object thanks to a value
@@ -75,7 +75,7 @@ namespace voc {
 
     Any& operator=(const Any& other);
 
-    Any& operator=(Any&& other);
+    Any& operator=(Any&& other) noexcept;
 
 
     /*

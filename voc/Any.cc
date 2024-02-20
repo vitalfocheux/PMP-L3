@@ -9,17 +9,20 @@ namespace voc {
     std::cout << "Copy constructor" << std::endl;
   }
 
-  Any::Any(Any&& other) : content(other.content) {
+  Any::Any(Any&& other) noexcept : content(std::exchange(other.content, nullptr)){
     std::cout << "Move constructor" << std::endl;
   }
 
   Any& Any::operator=(const Any& other) {
     std::cout << "Copy assignment" << std::endl;
+    clear();
+    content = other.content->clone();
     return *this;
   }
 
-  Any& Any::operator=(Any&& other) {
+  Any& Any::operator=(Any&& other) noexcept {
     std::cout << "Move assignment" << std::endl;
+    std::swap(content, other.content);
     return *this;
   }
 
@@ -32,7 +35,7 @@ namespace voc {
   }
 
   Any::operator bool() const {
-    return false;
+    return hasValue();
   }
 
   void Any::clear() {
