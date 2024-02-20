@@ -5,17 +5,21 @@ namespace voc {
   Any::Any() {
   }
 
-  Any::Any(const Any& other) {
+  Any::Any(const Any& other) : content(other.content->clone()) {
+    std::cout << "Copy constructor" << std::endl;
   }
 
-  Any::Any(Any&& other) {
+  Any::Any(Any&& other) : content(other.content) {
+    std::cout << "Move constructor" << std::endl;
   }
 
   Any& Any::operator=(const Any& other) {
+    std::cout << "Copy assignment" << std::endl;
     return *this;
   }
 
   Any& Any::operator=(Any&& other) {
+    std::cout << "Move assignment" << std::endl;
     return *this;
   }
 
@@ -24,7 +28,7 @@ namespace voc {
   }
 
   bool Any::hasValue() const {
-    return false;
+    return content != nullptr;
   }
 
   Any::operator bool() const {
