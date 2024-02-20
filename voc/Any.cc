@@ -28,6 +28,7 @@ namespace voc {
 
   Any::~Any() {
     delete content;
+    content = nullptr;
   }
 
   bool Any::hasValue() const {
@@ -39,6 +40,8 @@ namespace voc {
   }
 
   void Any::clear() {
+    delete content;
+    content = nullptr;
   }
 
   const std::type_info& Any::getType() const {
