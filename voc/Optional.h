@@ -18,12 +18,16 @@ namespace voc {
     {
     }
 
+    #if 0
+
     /*
      * Create an object thanks to a value
      */
     Optional(/* implementation defined */ value)
     {
     }
+
+    #endif
 
     /*
      * Create an object in place with the arguments of a constructor of T
@@ -55,6 +59,10 @@ namespace voc {
     template<typename U>
     Optional& operator=(Optional<U>&& other) {
       return *this;
+    }
+
+    ~Optional(){
+
     }
 
     /*
@@ -133,6 +141,8 @@ namespace voc {
     return Optional<T>();
   }
 
+  #if 0
+
   /*
    * The comparaison operator could take any instance of Optional with compatible type and
    * must works with non initalized Optional.
@@ -163,6 +173,8 @@ namespace voc {
   bool operator>=(/* implementation defined */ lhs, /* implementation defined */ rhs) {
     return false;
   }
+
+  #endif
 
 }
 
