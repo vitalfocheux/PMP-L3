@@ -125,6 +125,8 @@ namespace voc {
         friend T anyCast(Any&& any);
         template<typename T>
         friend T* anyCast(Any* any);
+        template<typename T>
+        friend const T* anyCast(const Any* any);
   };
 
   /*
@@ -177,7 +179,10 @@ namespace voc {
   template<typename T>
   T* anyCast(Any* any) {
     std::cout << "anyCast(Any* any)" << std::endl;
-    return nullptr;
+    if(!any->hasValue() || any->getType() != typeid(T)){
+      return nullptr;
+    }
+    return &static_cast<details::HelperGeneric<T>*>(any->content)->value;
   }
 
   /*
@@ -185,7 +190,11 @@ namespace voc {
    */
   template<typename T>
   const T* anyCast(const Any* any) {
-    return nullptr;
+    std::cout << "anyCast(const Any* any)" << std::endl;
+    if(!any->hasValue() || any->getType() != typeid(T)){
+      return nullptr;
+    }
+    return &static_cast<details::HelperGeneric<T>*>(any->content)->value;
   }
 
 }

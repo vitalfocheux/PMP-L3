@@ -7,6 +7,13 @@
 
 namespace {
 
+  voc::Optional<double> my_sqrt(double value) {
+    if (value < 0) {
+      return voc::Optional<double>();
+    }
+    return voc::Optional<double>(std::sqrt(value));
+  }
+
   struct Point {
     Point(int x1, int y1){
       x = x1;
@@ -21,6 +28,13 @@ namespace {
     }
   };
 };
+
+voc::Optional<Point> couldCreatePoint(bool create){
+  if(create){
+    return voc::Optional<Point>(voc::InPlace, 42, 24);
+  }
+  return voc::Optional<Point>();
+}
 
 /*
  * Any
@@ -43,10 +57,22 @@ TEST(AnyTest, Get_Type_Change) {
   EXPECT_EQ(any.getType(), typeid(double));
 }
 
-TEST(AnyTest, AnyCast){
+TEST(AnyTest, AnyCastConst){
+  const voc::Any any = 42;
+  try{
+    auto c = voc::anyCast<int>(any);
+    EXPECT_EQ(c, 42);
+  }catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  
+}
+
+TEST(AnyTest, AnyCastMove){
   voc::Any any = 42;
   try{
     auto c = voc::anyCast<int>(std::move(any));
+    EXPECT_EQ(c, 42);
   }catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
@@ -56,19 +82,32 @@ TEST(AnyTest, AnyCast2){
   voc::Any any = 42;
   try{
     auto c = voc::anyCast<int>(any);
+    EXPECT_EQ(c, 42);
   }catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
 }
 
-// /*
-//  * Optional
-//  */
+TEST(AnyTest, DefaultStringConstructor){
+  voc::Any any(std::string("Hello"));
+  EXPECT_TRUE(any.hasValue());
+  EXPECT_EQ(any.getType(), typeid(std::string));
+}
 
-// TEST(OptionalTest, DefaultCtor) {
-//   voc::Optional<int> opt;
-//   EXPECT_FALSE(opt.hasValue());
-// }
+TEST(AnyTest, AnyCastPointer){
+  const voc::Any any = 42;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(*c, 42);
+}
+
+/*
+ * Optional
+ */
+
+TEST(OptionalTest, DefaultCtor) {
+  voc::Optional<int> opt;
+  EXPECT_FALSE(opt.hasValue());
+}
 
 TEST(Exemple, Exemple){
   voc::Any any;
@@ -103,6 +142,27 @@ TEST(Exemple, Exemple){
   } catch (const std::exception& e){
     EXPECT_STREQ(e.what(), "std::bad_cast");
   }
+
+  voc::Optional<double> opt = my_sqrt(-1.0);
+  EXPECT_EQ(opt.getValueOr(-1.0), -1.0);
+
+  opt = my_sqrt(9.0);
+  EXPECT_EQ(opt.getValueOr(-1.0), 3.0);
+
+  voc::Optional<Point> optPoint = couldCreatePoint(true);
+  p = optPoint.getValue();
+
+  EXPECT_EQ(p.x, 42);
+  EXPECT_EQ(p.y, 24);
+
+  auto opt2 = voc::makeOptional<Point>(42, 24);
+  EXPECT_TRUE(p == opt2.getValue());
+
+  // std::cout << " == " << std::endl;
+  // EXPECT_TRUE(opt2 == optPoint);
+
+  opt2.clear();
+  EXPECT_FALSE(opt2);
 }
 
 int main(int argc, char* argv[]) {

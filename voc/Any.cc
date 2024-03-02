@@ -27,8 +27,10 @@ namespace voc {
   }
 
   Any::~Any() {
-    delete content;
-    content = nullptr;
+    if(content != nullptr){
+      delete content;
+      content = nullptr;  
+    }
   }
 
   bool Any::hasValue() const {

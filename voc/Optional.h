@@ -18,23 +18,18 @@ namespace voc {
     {
     }
 
-    #if 0
 
     /*
      * Create an object thanks to a value
      */
-    Optional(/* implementation defined */ value)
-    {
+    Optional(T value) : value(new T(value)) {
     }
-
-    #endif
 
     /*
      * Create an object in place with the arguments of a constructor of T
      */
     template<typename ... Args>
-    Optional(InPlaceStruct inPlace, Args&& ... args)
-    {
+    Optional(InPlaceStruct inPlace, Args&& ... args) : value(new T(std::forward<Args>(args)...)) {
     }
 
     /*
@@ -42,6 +37,8 @@ namespace voc {
      */
     template<typename U>
     Optional& operator=(U&& value) {
+      clear();
+      value = new T(std::forward<U>(value));
       return *this;
     }
 
@@ -50,6 +47,8 @@ namespace voc {
      */
     template<typename U>
     Optional& operator=(const Optional<U>& other) {
+      clear();
+      value = new T(other.value);
       return *this;
     }
 
@@ -58,65 +57,75 @@ namespace voc {
      */
     template<typename U>
     Optional& operator=(Optional<U>&& other) {
+      std::swap(value, other.value);
       return *this;
     }
 
     ~Optional(){
-
+      std::cout << "Destructor" << std::endl;
+      clear();
     }
 
     /*
      * Tell if the object has a value, or is empty
      */
     bool hasValue() const {
-      return false;
+      return value != nullptr;
     }
 
     /*
      * Tell if the object has a value, or is empty
      */
     explicit operator bool() const {
-      return false;
+      return hasValue();
     }
 
     /*
      * Return a reference to the object, or std::runtime_error if the object is empty
      */
     T& getValue() {
+      if(!hasValue()){
+        throw std::runtime_error("Optional is empty");
+      }
+      return *value;
     }
 
     /*
      * Return a const reference to the object, or std::runtime_error if the object is empty
      */
     const T& getValue() const {
+      if(!hasValue()){
+        throw std::runtime_error("Optional is empty");
+      }
+      return static_cast<const T&>(*value);
     }
 
     /*
      * Return a pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T* operator->() {
-      return nullptr;
+      return value;    
     }
 
     /*
      * Return a const pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T* operator->() const {
-      return nullptr;
+      return static_cast<const T*>(value);
     }
 
     /*
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T& operator*() {
-      return T();
+      return *value;
     }
 
     /*
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T& operator*() const {
-      return T();
+      return static_cast<const T&>(*value);
     }
 
     /*
@@ -124,21 +133,29 @@ namespace voc {
      */
     template<typename U>
     T getValueOr(U&& defaultValue) const {
+      if(hasValue()){
+        return *value;
+      }
+      return std::forward<U>(defaultValue);
     }
 
     /*
      * Clear the stored value
      */
     void clear() {
+      if(hasValue()){
+        delete value;
+        value = nullptr;
+      }
     }
 
   private:
-    // implementation
+    T* value = nullptr;
   };
 
   template<typename T, typename... Args>
   Optional<T> makeOptional(Args&&... args) {
-    return Optional<T>();
+    return Optional<T>(InPlace, std::forward<Args>(args)...);
   }
 
   #if 0
@@ -150,27 +167,63 @@ namespace voc {
    *
    * See https://en.cppreference.com/w/cpp/utility/optional/operator_cmp for more details.
    */
-  bool operator==(/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator==(const Optional<T> lhs, const Optional<U> rhs) {
     return false;
   }
 
-  bool operator!=(/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator!=(const Optional<T> lhs, const Optional<U> rhs) {
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs != *rhs;
+    }
+    if((!lhs.hasValue && rhs.hasValue) || (lhs.hasValue && !rhs.hasValue)){
+      return true;
+    }
     return false;
   }
 
-  bool operator< (/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator< (const Optional<T> lhs, const Optional<U> rhs) {
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs < *rhs;
+    }
+    if(!lhs.hasValue() && rhs.hasValue()){
+      return true;
+    }
     return false;
   }
 
-  bool operator<=(/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator<=(const Optional<T> lhs, const Optional<U> rhs) {
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs <= *rhs;
+    }
+    if((!lhs.hasValue() && rhs.hasValue()) || (lhs == rhs)){
+      return true;
+    }
     return false;
   }
 
-  bool operator> (/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator> (const Optional<T> lhs, const Optional<U> rhs) {
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs > *rhs;
+    }
+    if(lhs.hasValue() && !rhs.hasValue()){
+      return true;
+    }
     return false;
   }
 
-  bool operator>=(/* implementation defined */ lhs, /* implementation defined */ rhs) {
+  template<typename T, typename U>
+  bool operator>=(const Optional<T> lhs, const Optional<U> rhs) {
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs > *rhs;
+    }
+    if((lhs.hasValue() && !rhs.hasValue()) || (lhs == rhs)){
+      return true;
+    }
     return false;
   }
 
