@@ -3,6 +3,7 @@
 namespace voc {
 
   Any::Any() {
+    std::cout << "Default constructor" << std::endl;
   }
 
   Any::Any(const Any& other) : content(other.content->clone()) {

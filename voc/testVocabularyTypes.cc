@@ -100,6 +100,28 @@ TEST(AnyTest, AnyCastPointer){
   EXPECT_EQ(*c, 42);
 }
 
+TEST(AnyTest, CopyAssignmentOfAny){
+  voc::Any any = 42;
+  voc::Any any2;
+  any2 = any;
+  try{
+    std::cout << "try" << std::endl;
+    auto c = voc::anyCast<int>(any2);
+    auto c2 = voc::anyCast<int>(any);
+    EXPECT_EQ(c, 42);
+    EXPECT_EQ(c2, 42);
+    EXPECT_EQ(c, c2);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  // try{
+  //   auto c = voc::anyCast<int>(any);
+  //   EXPECT_EQ(c, 42);
+  // } catch(const std::bad_cast& e){
+  //   std::cout << e.what() << std::endl;
+  // }
+}
+
 /*
  * Optional
  */

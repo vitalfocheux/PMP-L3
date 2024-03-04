@@ -7,6 +7,8 @@
 
 namespace voc {
 
+  class Any;
+
   namespace details {
 
     class Helper {
@@ -22,10 +24,20 @@ namespace voc {
 
       public:
         HelperGeneric(const T& value) : value(value) {
+          // std::cout << this << " " <<"HelperGeneric(const T& value)" << std::endl;
         }
 
-        HelperGeneric(T&& value) : value(std::move(value)) {
+        // HelperGeneric(const voc::Any& other) : value(other.content->clone()) {
+        //   std::cout << this << " " <<"HelperGeneric(const T& value) with Any" << std::endl;
+        // }
+
+        HelperGeneric(T&& value) : value(value) {
+          // std::cout << this << " " <<"HelperGeneric(T&& value)" << std::endl;
         }
+
+        // HelperGeneric(voc::Any&& other) : value(other.content) {
+        //   std::cout << this << " " <<"HelperGeneric(T&& value) with Any" << std::endl;
+        // }
 
         HelperGeneric* clone() const override {
           return new HelperGeneric(value);
@@ -62,7 +74,7 @@ namespace voc {
      */
     template<typename T>
     Any(T&& value) {
-      std::cout << "Any(T&& value)" << std::endl;
+      // std::cout << this << " " << "Any(T&& value)" << std::endl;
       content = new details::HelperGeneric<T>(std::forward<T>(value));
     }
 
@@ -71,6 +83,7 @@ namespace voc {
      */
     template<typename T, typename ... Args>
     Any(InPlaceTypeStruct<T> inPlace, Args&& ... args) : content(new details::HelperGeneric<T>(T(std::forward<Args>(args)...))){
+      // std::cout << this << " " << "Any(InPlaceTypeStruct<T> inPlace, Args&& ... args)" << std::endl;
     }
 
     Any& operator=(const Any& other);
@@ -81,10 +94,19 @@ namespace voc {
     /*
      * Affecte a directly value
      */
-    template<typename U>
+    template<typename U, typename std::enable_if<!std::is_same<std::decay_t<U>, Any>::value>::type* = nullptr>
     Any& operator=(U&& value) {
       delete content;
       content = new details::HelperGeneric<U>(std::forward<U>(value));
+      return *this;
+    }
+
+    template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Any>::value>::type* = nullptr>
+    Any& operator=(U&& value) {
+      if (this != &value) {
+        delete content;
+        content = value.content ? value.content->clone() : nullptr;
+      }
       return *this;
     }
 
@@ -127,6 +149,7 @@ namespace voc {
         friend T* anyCast(Any* any);
         template<typename T>
         friend const T* anyCast(const Any* any);
+        template<typename T> friend class details::HelperGeneric;
   };
 
   /*
