@@ -20,27 +20,40 @@ namespace voc {
     {
     }
 
+    Optional(const Optional& other) : content(new T(*other.content)) {
+    }
+
+    Optional(Optional&& other) noexcept : content(std::exchange(other.content, nullptr)){
+    }
+
 
     /*
      * Create an object thanks to a value
      */
-    Optional(T value) : value(new T(value)) {
+    Optional(T value) : content(new T(value)) {
     }
 
     /*
      * Create an object in place with the arguments of a constructor of T
      */
     template<typename ... Args>
-    Optional(InPlaceStruct inPlace [[maybe_unused]], Args&& ... args) : value(new T(std::forward<Args>(args)...)) {
+    Optional(InPlaceStruct inPlace [[maybe_unused]], Args&& ... args) : content(new T(std::forward<Args>(args)...)) {
     }
 
     /*
      * Affectation from an value
      */
-    template<typename U>
+    template<typename U, typename std::enable_if<!std::is_same<std::decay_t<U>, Optional<T>>::value>::type* = nullptr>
     Optional& operator=(U&& value) {
       clear();
-      value = new T(std::forward<U>(value));
+      content = new T(std::forward<U>(value));
+      return *this;
+    }
+
+    template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Optional<T>>::value>::type* = nullptr>
+    Optional& operator=(U&& value) {
+      clear();
+      content = new T(*value.content);
       return *this;
     }
 
@@ -50,7 +63,7 @@ namespace voc {
     template<typename U>
     Optional& operator=(const Optional<U>& other) {
       clear();
-      value = new T(other.value);
+      content = new T(other.content);
       return *this;
     }
 
@@ -59,20 +72,20 @@ namespace voc {
      */
     template<typename U>
     Optional& operator=(Optional<U>&& other) {
-      std::swap(value, other.value);
+      std::swap(content, other.content);
       return *this;
     }
 
     ~Optional(){
-      std::cout << "Destructor" << std::endl;
-      clear();
+      // std::cout << "Destructor" << std::endl;
+      clear();      
     }
 
     /*
      * Tell if the object has a value, or is empty
      */
     bool hasValue() const {
-      return value != nullptr;
+      return content != nullptr;
     }
 
     /*
@@ -89,7 +102,7 @@ namespace voc {
       if(!hasValue()){
         throw std::runtime_error("Optional is empty");
       }
-      return *value;
+      return *content;
     }
 
     /*
@@ -99,35 +112,35 @@ namespace voc {
       if(!hasValue()){
         throw std::runtime_error("Optional is empty");
       }
-      return static_cast<const T&>(*value);
+      return static_cast<const T&>(*content);
     }
 
     /*
      * Return a pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T* operator->() {
-      return value;    
+      return content;    
     }
 
     /*
      * Return a const pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T* operator->() const {
-      return static_cast<const T*>(value);
+      return static_cast<const T*>(content);
     }
 
     /*
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T& operator*() {
-      return *value;
+      return *content;
     }
 
     /*
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T& operator*() const {
-      return static_cast<const T&>(*value);
+      return static_cast<const T&>(*content);
     }
 
     /*
@@ -136,7 +149,7 @@ namespace voc {
     template<typename U>
     T getValueOr(U&& defaultValue) const {
       if(hasValue()){
-        return *value;
+        return *content;
       }
       return std::forward<U>(defaultValue);
     }
@@ -146,13 +159,13 @@ namespace voc {
      */
     void clear() {
       if(hasValue()){
-        delete value;
-        value = nullptr;
+        delete content;
+        content = nullptr;
       }
     }
 
   private:
-    T* value = nullptr;
+    T* content = nullptr;
   };
 
   template<typename T, typename... Args>
@@ -170,69 +183,189 @@ namespace voc {
    * See https://en.cppreference.com/w/cpp/utility/optional/operator_cmp for more details.
    */
   template<typename T, typename U>
-  bool operator==(const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs == *rhs;
-    }
-    if((!lhs.hasValue() && rhs.hasValue()) || (lhs.hasValue() && !rhs.hasValue())){
+  bool operator==(const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(lhs) != bool(rhs)){
       return false;
     }
-    return true;
+    if(bool(lhs) == false && bool(rhs) == false){
+      return true;
+    }
+    return *lhs == *rhs;
+  }
+
+  // template<typename T>
+  // bool operator==(const Optional<T>& lhs, std::nullopt_t) {
+  //   return !lhs;
+  // }
+
+  // template<typename T>
+  // bool operator==(std::nullopt_t, const Optional<T>& rhs) {
+  //   return !rhs;
+  // }
+
+  template<typename T, typename U>
+  bool operator==(const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs == rhs : false;
   }
 
   template<typename T, typename U>
-  bool operator!=(const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs != *rhs;
-    }
-    if((!lhs.hasValue && rhs.hasValue) || (lhs.hasValue && !rhs.hasValue)){
-      return true;
-    }
-    return false;
+  bool operator==(const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs == *rhs : false;
   }
 
   template<typename T, typename U>
-  bool operator< (const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs < *rhs;
-    }
-    if(!lhs.hasValue() && rhs.hasValue()){
+  bool operator!=(const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(lhs) != bool(rhs)){
       return true;
     }
-    return false;
+    if(bool(lhs) == false && bool(rhs) == false){
+      return false;
+    }
+    return *lhs != *rhs;
+  }
+
+  // template<typename T>
+  // bool operator!=(const Optional<T>& lhs, std::nullopt_t) {
+  //   return lhs;
+  // }
+
+  // template<typename T>
+  // bool operator!=(std::nullopt_t, const Optional<T>& rhs) {
+  //   return rhs;
+  // }
+
+  template<typename T, typename U>
+  bool operator!=(const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs != rhs : true;
   }
 
   template<typename T, typename U>
-  bool operator<=(const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs <= *rhs;
-    }
-    if((!lhs.hasValue() && rhs.hasValue()) || (lhs == rhs)){
-      return true;
-    }
-    return false;
+  bool operator!=(const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs != *rhs : true;
   }
 
   template<typename T, typename U>
-  bool operator> (const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs > *rhs;
+  bool operator< (const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(rhs) == false){
+      return false;
     }
-    if(lhs.hasValue() && !rhs.hasValue()){
+    if(bool(lhs) == false){
       return true;
     }
-    return false;
+    return *lhs < *rhs;
+  }
+
+  // template<typename T>
+  // bool operator< (const Optional<T>& lhs, std::nullopt_t) {
+  //   return false;
+  // }
+
+  // template<typename T>
+  // bool operator< (std::nullopt_t, const Optional<T>& rhs) {
+  //   return rhs;
+  // }
+
+  template<typename T, typename U>
+  bool operator< (const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs < rhs : true;
   }
 
   template<typename T, typename U>
-  bool operator>=(const Optional<T> lhs, const Optional<U> rhs) {
-    if(lhs.hasValue() && rhs.hasValue()){
-      return *lhs > *rhs;
-    }
-    if((lhs.hasValue() && !rhs.hasValue()) || (lhs == rhs)){
+  bool operator< (const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs < *rhs : false;
+  }
+
+  template<typename T, typename U>
+  bool operator<=(const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(lhs) == false){
       return true;
     }
-    return false;
+    if(bool(rhs) == false){
+      return false;
+    }
+    return *lhs <= *rhs;
+  }
+
+  // template<typename T>
+  // bool operator<=(const Optional<T>& lhs, std::nullopt_t) {
+  //   return !lhs;
+  // }
+
+  // template<typename T>
+  // bool operator<=(std::nullopt_t, const Optional<T>& rhs) {
+  //   return true;
+  // }
+
+  template<typename T, typename U>
+  bool operator<=(const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs <= rhs : true;
+  }
+
+  template<typename T, typename U>
+  bool operator<=(const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs <= *rhs : false;
+  }
+
+  template<typename T, typename U>
+  bool operator> (const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(lhs) == false){
+      return false;
+    }
+    if(bool(rhs) == false){
+      return true;
+    }
+    return *lhs > *rhs;
+  }
+
+  // template<typename T>
+  // bool operator> (const Optional<T>& lhs, std::nullopt_t) {
+  //   return lhs;
+  // }
+
+  // template<typename T>
+  // bool operator> (std::nullopt_t, const Optional<T>& rhs) {
+  //   return false;
+  // }
+
+  template<typename T, typename U>
+  bool operator> (const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs > rhs : false;
+  }
+
+  template<typename T, typename U>
+  bool operator> (const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs > *rhs : true;
+  }
+
+  template<typename T, typename U>
+  bool operator>=(const Optional<T>& lhs, const Optional<U>& rhs) {
+    if(bool(rhs) == false){
+      return true;
+    }
+    if(bool(lhs) == false){
+      return false;
+    }
+    return *lhs >= *rhs;
+  }
+
+  // template<typename T>
+  // bool operator>=(const Optional<T>& lhs, std::nullopt_t) {
+  //   return true;
+  // }
+
+  // template<typename T>
+  // bool operator>=(std::nullopt_t, const Optional<T>& rhs) {
+  //   return !rhs;
+  // }
+
+  template<typename T, typename U>
+  bool operator>=(const Optional<T>& lhs, const U& rhs) {
+    return bool(lhs) ? *lhs >= rhs : false;
+  }
+
+  template<typename T, typename U>
+  bool operator>=(const T& lhs, const Optional<U>& rhs) {
+    return bool(rhs) ? lhs >= *rhs : true;
   }
 
   #endif

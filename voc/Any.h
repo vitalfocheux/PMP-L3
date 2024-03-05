@@ -171,7 +171,7 @@ namespace voc {
    */
   template<typename T>
   T anyCast(const Any& any) {
-    std::cout << "anyCast(const Any& any)" << std::endl;
+    // std::cout << "anyCast(const Any& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -183,7 +183,7 @@ namespace voc {
    */
   template<typename T>
   T anyCast(Any& any) {
-    std::cout << "anyCast(Any& any)" << std::endl;
+    // std::cout << "anyCast(Any& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -195,7 +195,7 @@ namespace voc {
    */
   template<typename T>
   T anyCast(Any&& any) {
-    std::cout << "anyCast(Any&& any)" << std::endl;
+    // std::cout << "anyCast(Any&& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -207,7 +207,7 @@ namespace voc {
    */
   template<typename T>
   T* anyCast(Any* any) {
-    std::cout << "anyCast(Any* any)" << std::endl;
+    // std::cout << "anyCast(Any* any)" << std::endl;
     if(!any->hasValue() || any->getType() != typeid(T)){
       return nullptr;
     }
@@ -219,7 +219,7 @@ namespace voc {
    */
   template<typename T>
   const T* anyCast(const Any* any) {
-    std::cout << "anyCast(const Any* any)" << std::endl;
+    // std::cout << "anyCast(const Any* any)" << std::endl;
     if(!any->hasValue() || any->getType() != typeid(T)){
       return nullptr;
     }
