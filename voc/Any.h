@@ -7,8 +7,6 @@
 
 namespace voc {
 
-  class Any;
-
   namespace details {
 
     class Helper {
@@ -72,17 +70,22 @@ namespace voc {
     /*
      * Create an object thanks to a value
      */
-    template<typename T>
+    template<typename T, typename std::enable_if<!std::is_same<std::decay_t<T>, Any>::value>::type* = nullptr>
     Any(T&& value) {
       // std::cout << this << " " << "Any(T&& value)" << std::endl;
       content = new details::HelperGeneric<T>(std::forward<T>(value));
+    }
+
+    template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Any>::value>::type* = nullptr>
+    Any(U&& value) {
+      content = value.content ? value.content->clone() : nullptr;
     }
 
     /*
      * Create an object in place with the arguments of a constructor of T
      */
     template<typename T, typename ... Args>
-    Any(InPlaceTypeStruct<T> inPlace, Args&& ... args) : content(new details::HelperGeneric<T>(T(std::forward<Args>(args)...))){
+    Any(InPlaceTypeStruct<T> inPlace [[maybe_unused]], Args&& ... args) : content(new details::HelperGeneric<T>(T(std::forward<Args>(args)...))){
       // std::cout << this << " " << "Any(InPlaceTypeStruct<T> inPlace, Args&& ... args)" << std::endl;
     }
 
@@ -101,6 +104,9 @@ namespace voc {
       return *this;
     }
 
+    /**
+     * Affecte a directly value from an Any with SFINAE
+    */
     template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Any>::value>::type* = nullptr>
     Any& operator=(U&& value) {
       if (this != &value) {

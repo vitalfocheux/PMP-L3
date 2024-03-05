@@ -1,6 +1,8 @@
 #ifndef VOC_OPTIONAL_H
 #define VOC_OPTIONAL_H
 
+#define cmp
+
 namespace voc {
 
   struct InPlaceStruct {
@@ -29,7 +31,7 @@ namespace voc {
      * Create an object in place with the arguments of a constructor of T
      */
     template<typename ... Args>
-    Optional(InPlaceStruct inPlace, Args&& ... args) : value(new T(std::forward<Args>(args)...)) {
+    Optional(InPlaceStruct inPlace [[maybe_unused]], Args&& ... args) : value(new T(std::forward<Args>(args)...)) {
     }
 
     /*
@@ -158,7 +160,7 @@ namespace voc {
     return Optional<T>(InPlace, std::forward<Args>(args)...);
   }
 
-  #if 0
+  #ifdef cmp
 
   /*
    * The comparaison operator could take any instance of Optional with compatible type and
@@ -169,7 +171,13 @@ namespace voc {
    */
   template<typename T, typename U>
   bool operator==(const Optional<T> lhs, const Optional<U> rhs) {
-    return false;
+    if(lhs.hasValue() && rhs.hasValue()){
+      return *lhs == *rhs;
+    }
+    if((!lhs.hasValue() && rhs.hasValue()) || (lhs.hasValue() && !rhs.hasValue())){
+      return false;
+    }
+    return true;
   }
 
   template<typename T, typename U>

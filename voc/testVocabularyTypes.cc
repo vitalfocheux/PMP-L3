@@ -42,7 +42,74 @@ voc::Optional<Point> couldCreatePoint(bool create){
 
 TEST(AnyTest, DefaultCtor) {
   voc::Any any;
-  EXPECT_FALSE(any.hasValue());
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, ConstructorWithValue){
+  voc::Any any(42);
+  EXPECT_TRUE(any);
+  EXPECT_EQ(voc::anyCast<int>(any), 42);
+  EXPECT_EQ(any.getType(), typeid(int));
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, CopyConstructor){
+  voc::Any any(42);
+  voc::Any any2(any);
+  EXPECT_TRUE(any2);
+  EXPECT_TRUE(any);
+  EXPECT_EQ(voc::anyCast<int>(any2), 42);
+  EXPECT_EQ(voc::anyCast<int>(any), 42);
+  EXPECT_EQ(any2.getType(), typeid(int));
+  EXPECT_EQ(any.getType(), typeid(int));
+  EXPECT_TRUE(any2);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, MoveConstructor){
+  voc::Any any(42);
+  voc::Any any2(std::move(any));
+  EXPECT_TRUE(any2);
+  EXPECT_FALSE(any);
+  EXPECT_EQ(voc::anyCast<int>(any2), 42);
+  EXPECT_EQ(any2.getType(), typeid(int));
+  EXPECT_TRUE(any2);
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, CopyAssignment){
+  voc::Any any(42);
+  voc::Any any2;
+  any2 = any;
+  EXPECT_TRUE(any2);
+  EXPECT_TRUE(any);
+  EXPECT_EQ(voc::anyCast<int>(any2), 42);
+  EXPECT_EQ(voc::anyCast<int>(any), 42);
+  EXPECT_EQ(any2.getType(), typeid(int));
+  EXPECT_EQ(any.getType(), typeid(int));
+  EXPECT_TRUE(any2);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, MoveAssignment){
+  voc::Any any(42);
+  voc::Any any2;
+  any2 = std::move(any);
+  EXPECT_TRUE(any2);
+  EXPECT_FALSE(any);
+  EXPECT_EQ(voc::anyCast<int>(any2), 42);
+  EXPECT_EQ(any2.getType(), typeid(int));
+  EXPECT_TRUE(any2);
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, ValueAssignment){
+  voc::Any any;
+  any = 42;
+  EXPECT_TRUE(any);
+  EXPECT_EQ(voc::anyCast<int>(any), 42);
+  EXPECT_EQ(any.getType(), typeid(int));
+  EXPECT_TRUE(any);
 }
 
 TEST(AnyTest, Get_Type){
@@ -90,7 +157,7 @@ TEST(AnyTest, AnyCast2){
 
 TEST(AnyTest, DefaultStringConstructor){
   voc::Any any(std::string("Hello"));
-  EXPECT_TRUE(any.hasValue());
+  EXPECT_TRUE(any);
   EXPECT_EQ(any.getType(), typeid(std::string));
 }
 
@@ -180,8 +247,8 @@ TEST(Exemple, Exemple){
   auto opt2 = voc::makeOptional<Point>(42, 24);
   EXPECT_TRUE(p == opt2.getValue());
 
-  // std::cout << " == " << std::endl;
-  // EXPECT_TRUE(opt2 == optPoint);
+  std::cout << " == " << std::endl;
+  EXPECT_TRUE(opt2 == optPoint);
 
   opt2.clear();
   EXPECT_FALSE(opt2);
