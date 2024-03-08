@@ -6,6 +6,16 @@
 #include <cmath>
 #include <vector>
 
+/**
+ * By defining the variable NON_COPYABLE, it enables tests related to 
+ * handling non-copyable objects with voc::Optional. The issue is that 
+ * I didn't have time to handle this case, but thanks to the structure 
+ * voc::is_copyable<T>::value, which allows determining if an object is 
+ * copyable, I could have managed this case.
+*/
+
+// #define NON_COPYABLE
+
 namespace {
 
   voc::Optional<double> my_sqrt(double value) {
@@ -113,16 +123,26 @@ TEST(AnyTest, ValueAssignment){
   EXPECT_TRUE(any);
 }
 
+TEST(AnyTest, Hasvalue){
+  voc::Any any;
+  EXPECT_FALSE(any.hasValue());
+  any = 42;
+  EXPECT_TRUE(any.hasValue());
+}
+
 TEST(AnyTest, Get_Type){
   voc::Any any;
   EXPECT_EQ(any.getType(), typeid(void));
+  EXPECT_FALSE(any);
 }
 
 TEST(AnyTest, Get_Type_Change) {
   voc::Any any = 42;
   EXPECT_EQ(any.getType(), typeid(int));
+  EXPECT_TRUE(any);
   any = 3.14;
   EXPECT_EQ(any.getType(), typeid(double));
+  EXPECT_TRUE(any);
 }
 
 TEST(AnyTest, AnyCastConst){
@@ -133,7 +153,29 @@ TEST(AnyTest, AnyCastConst){
   }catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
-  
+  EXPECT_TRUE(any);  
+}
+
+TEST(AnyTest, BadAnyCastConst){
+  const voc::Any any = 42;
+  try{
+    auto c = voc::anyCast<double>(any);
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastConstEmpty){
+  const voc::Any any;
+  try{
+    auto c = voc::anyCast<int>(any);
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_FALSE(any);
 }
 
 TEST(AnyTest, AnyCastMove){
@@ -144,9 +186,32 @@ TEST(AnyTest, AnyCastMove){
   }catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
+  EXPECT_TRUE(any);
 }
 
-TEST(AnyTest, AnyCast2){
+TEST(AnyTest, BadAnyCastMove){
+  voc::Any any = 42;
+  try{
+    auto c = voc::anyCast<double>(std::move(any));
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastMoveEmpty){
+  voc::Any any;
+  try{
+    auto c = voc::anyCast<int>(std::move(any));
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, AnyCast){
   voc::Any any = 42;
   try{
     auto c = voc::anyCast<int>(any);
@@ -154,18 +219,82 @@ TEST(AnyTest, AnyCast2){
   }catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCast){
+  voc::Any any = 42;
+  try{
+    auto c = voc::anyCast<double>(any);
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastEmpty){
+  voc::Any any;
+  try{
+    auto c = voc::anyCast<int>(any);
+    EXPECT_EQ(c, 42);
+  } catch(const std::bad_cast& e){
+    std::cout << e.what() << std::endl;
+  }
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, AnyCastConstPointer){
+  const voc::Any any = 42;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(*c, 42);
+  EXPECT_TRUE(any);  
+}
+
+TEST(AnyTest, BadAnyCastConstPointer){
+  const voc::Any any = 42;
+  auto c = voc::anyCast<double>(&any);
+  EXPECT_EQ(c, nullptr);
+  
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastConstPointerEmpty){
+  const voc::Any any;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(c, nullptr);
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, AnyCastPointer){
+  voc::Any any = 42;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(*c, 42);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastPointer){
+  voc::Any any = 42;
+  auto c = voc::anyCast<double>(&any);
+  EXPECT_EQ(c, nullptr);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, BadAnyCastPointerEmpty){
+  voc::Any any;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(c, nullptr);
+  EXPECT_FALSE(any);
 }
 
 TEST(AnyTest, ConstructorWithString){
   voc::Any any(std::string("Hello"));
-  EXPECT_TRUE(any);
   EXPECT_EQ(any.getType(), typeid(std::string));
+  EXPECT_TRUE(any);
 }
 
 TEST(AnyTest, ConstructorWithVector){
   voc::Any any(std::vector<int>{1, 2, 3});
-  EXPECT_TRUE(any);
-  EXPECT_EQ(any.getType(), typeid(std::vector<int>));
   try{
     auto c = voc::anyCast<std::vector<int>>(any);
     EXPECT_EQ(c.size(), 3);
@@ -175,12 +304,8 @@ TEST(AnyTest, ConstructorWithVector){
   } catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
-}
-
-TEST(AnyTest, AnyCastPointer){
-  const voc::Any any = 42;
-  auto c = voc::anyCast<int>(&any);
-  EXPECT_EQ(*c, 42);
+  EXPECT_TRUE(any);
+  EXPECT_EQ(any.getType(), typeid(std::vector<int>));
 }
 
 TEST(AnyTest, CopyAssignmentOfAny){
@@ -196,6 +321,46 @@ TEST(AnyTest, CopyAssignmentOfAny){
   } catch(const std::bad_cast& e){
     std::cout << e.what() << std::endl;
   }
+}
+
+TEST(AnyTest, Astérisque){
+  voc::Any any = 42;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(*c, 42);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, AstérisqueEmpty){
+  voc::Any any;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(c, nullptr);
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, AstérisqueConst){
+  const voc::Any any = 42;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(*c, 42);
+  EXPECT_TRUE(any);
+}
+
+TEST(AnyTest, AstérisqueConstEmpty){
+  const voc::Any any;
+  auto c = voc::anyCast<int>(&any);
+  EXPECT_EQ(c, nullptr);
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, Clear){
+  voc::Any any = 42;
+  any.clear();
+  EXPECT_FALSE(any);
+}
+
+TEST(AnyTest, ClearEmpty){
+  voc::Any any;
+  any.clear();
+  EXPECT_FALSE(any);
 }
 
 /*
@@ -295,6 +460,43 @@ TEST(OptionalTest, GetValueOrEmpty){
 TEST(OptionalTest, GetValueOr){
   voc::Optional<int> opt(42);
   auto c = opt.getValueOr(-1);
+  EXPECT_EQ(c, 42);
+}
+
+TEST(OptionalTest, GetValueOrConst){
+  const voc::Optional<int> opt(42);
+  auto c = opt.getValueOr(-1);
+  EXPECT_EQ(c, 42);
+}
+
+TEST(OptionalTest, GetValueOrConstEmpty){
+  const voc::Optional<int> opt;
+  auto c = opt.getValueOr(-1);
+  EXPECT_EQ(c, -1);
+}
+
+TEST(OptionalTest, Astérisque){
+  voc::Optional<int> opt(42);
+  auto c = *opt;
+  EXPECT_EQ(c, 42);
+}
+
+
+TEST(OptionalTest, AstérisqueConst){
+  const voc::Optional<int> opt(42);
+  auto c = *opt;
+  EXPECT_EQ(c, 42);
+}
+
+TEST(OptionalTest, Arrow){
+  voc::Optional<Point> opt(Point{42, 24});
+  auto c = opt->x;
+  EXPECT_EQ(c, 42);
+}
+
+TEST(OptionalTest, ArrowConst){
+  const voc::Optional<Point> opt(Point{42, 24});
+  auto c = opt->x;
   EXPECT_EQ(c, 42);
 }
 
@@ -525,6 +727,95 @@ TEST(OptionalTest, Hasvalue){
   opt.clear();
   EXPECT_FALSE(opt.hasValue());
 }
+
+TEST(OptionalTest, Optional){
+  voc::Optional<int> opt(42);
+  voc::Optional<voc::Optional<int>> opt2(opt);
+  EXPECT_TRUE(opt2);
+  EXPECT_TRUE(opt);
+  EXPECT_EQ(opt2.getValue(), 42);
+}
+
+#ifdef NON_COPYABLE
+
+TEST(OptionalTest, UniquePtrCopyConstructor){
+  std::unique_ptr<int> ptr = std::make_unique<int>(42);
+  voc::Optional<std::unique_ptr<int>> opt(ptr);
+  EXPECT_TRUE(opt);
+}
+
+TEST(OptionalTest, UniquePtrMoveConstructor){
+  std::unique_ptr<int> ptr = std::make_unique<int>(42);
+  voc::Optional<std::unique_ptr<int>> opt(std::move(ptr));
+  EXPECT_TRUE(opt);
+}
+
+TEST(OptionalTest, UniquePtrCopyAssignment){
+  std::unique_ptr<int> ptr = std::make_unique<int>(42);
+  voc::Optional<std::unique_ptr<int>> opt;
+  opt = ptr;
+  EXPECT_TRUE(opt);
+}
+
+TEST(OptionalTest, UniquePtrMoveAssignment){
+  std::unique_ptr<int> ptr = std::make_unique<int>(42);
+  voc::Optional<std::unique_ptr<int>> opt;
+  opt = std::move(ptr);
+  EXPECT_TRUE(opt);
+}
+
+
+
+TEST(OptionalTest, NonCopyable){
+  std::unique_ptr<int> ptr = std::make_unique<int>(42);
+
+  std::optional<std::unique_ptr<int>> opt1 = std::make_optional(std::move(ptr));
+
+  if (opt1.has_value()) {
+    std::cout << "opt1 contient une valeur." << std::endl;
+    auto p = std::move(*opt1);
+    std::cout << "opt1 contient " << *p << std::endl;
+    EXPECT_EQ(*p, 42);
+  } else {
+    std::cout << "opt1 est vide." << std::endl;
+  }
+}
+
+TEST(OptionalTest, NonCopyable2){
+  voc::Optional<std::unique_ptr<int>> opt1;
+
+  {
+    std::unique_ptr<int> ptr = std::make_unique<int>(42);
+    opt1 = voc::makeOptional(std::move(ptr));
+    try{
+      auto p = std::move(*opt1);
+      std::cout << "opt1 contient " << *p << std::endl;
+      EXPECT_EQ(*p, 42);
+    } catch(const std::bad_optional_access& e){
+      std::cout << e.what() << std::endl;
+    }
+  }
+
+  try{
+    if(opt1){
+      std::cout << "opt1 contient une valeur." << std::endl;
+      auto p = std::move(*opt1);
+      if(p){
+        std::cout << "opt1 contient " << *p << std::endl;
+      }else{
+        std::cout << "opt1 contient une valeur vide." << std::endl;
+      }
+      auto c = p.get();
+      // std::cout << "opt1 contient " << *c << std::endl;
+      EXPECT_EQ(c, nullptr);
+    }
+  } catch(const std::bad_optional_access& e){
+    std::cout << e.what() << std::endl;
+  }
+ 
+}
+
+#endif // NON_COPYABLE
 
 TEST(Exemple, Exemple){
   voc::Any any;

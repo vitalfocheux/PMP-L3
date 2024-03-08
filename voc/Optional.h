@@ -5,6 +5,28 @@
 
 namespace voc {
 
+  template<typename T>
+  struct is_copyable {
+  private:
+      // Check if type T has a copy constructor
+      template<typename U>
+      static auto test_copy_constructor(int) -> decltype(U(std::declval<const U&>()), std::true_type{});
+
+      template<typename>
+      static std::false_type test_copy_constructor(...);
+
+      // Check if type T has a copy assignment operator
+      template<typename U>
+      static auto test_copy_assignment(int) -> decltype(std::declval<U&>() = std::declval<const U&>(), std::true_type{});
+
+      template<typename>
+      static std::false_type test_copy_assignment(...);
+
+  public:
+      // Static value to indicate if T is copyable
+      static constexpr bool value = decltype(test_copy_constructor<T>(0))::value && decltype(test_copy_assignment<T>(0))::value;
+  };
+
   struct InPlaceStruct {
   };
 
@@ -20,9 +42,15 @@ namespace voc {
     {
     }
 
+    /**
+     * @brief Copy constructor
+    */
     Optional(const Optional& other) : content(new T(*other.content)) {
     }
 
+    /**
+     * @brief Move constructor
+    */
     Optional(Optional&& other) noexcept : content(std::exchange(other.content, nullptr)){
     }
 
@@ -50,13 +78,6 @@ namespace voc {
       return *this;
     }
 
-    template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Optional<T>>::value>::type* = nullptr>
-    Optional& operator=(U&& value) {
-      clear();
-      content = new T(*value.content);
-      return *this;
-    }
-
     /*
      * Affectation from another compatible Optional
      */
@@ -64,6 +85,15 @@ namespace voc {
     Optional& operator=(const Optional<U>& other) {
       clear();
       content = new T(other.content);
+      return *this;
+    }
+
+    /**
+     * @brief Copy assignment operator
+    */
+    Optional& operator=(const Optional& other) {
+      clear();
+      content = new T(*other.content);
       return *this;
     }
 
@@ -76,8 +106,18 @@ namespace voc {
       return *this;
     }
 
+    /**
+     * @brief Move assignment operator
+    */
+    Optional& operator=(Optional&& other) noexcept {
+      std::swap(content, other.content);
+      return *this;
+    }
+
+    /**
+     * @brief Destructor
+     */
     ~Optional(){
-      // std::cout << "Destructor" << std::endl;
       clear();      
     }
 
@@ -119,6 +159,7 @@ namespace voc {
      * Return a pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T* operator->() {
+      // std::cout << "operator->" << std::endl;
       return content;    
     }
 
@@ -126,6 +167,7 @@ namespace voc {
      * Return a const pointer to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T* operator->() const {
+      // std::cout << "const operator->" << std::endl;
       return static_cast<const T*>(content);
     }
 
@@ -133,6 +175,7 @@ namespace voc {
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     T& operator*() {
+      // std::cout << "operator*" << std::endl;
       return *content;
     }
 
@@ -140,6 +183,7 @@ namespace voc {
      * Return a reference to the stored data. If the value was initialized, the behaviour is undefined.
      */
     const T& operator*() const {
+      // std::cout << "const operator*" << std::endl;
       return static_cast<const T&>(*content);
     }
 
@@ -224,16 +268,6 @@ namespace voc {
     return *lhs != *rhs;
   }
 
-  // template<typename T>
-  // bool operator!=(const Optional<T>& lhs, std::nullopt_t) {
-  //   return lhs;
-  // }
-
-  // template<typename T>
-  // bool operator!=(std::nullopt_t, const Optional<T>& rhs) {
-  //   return rhs;
-  // }
-
   template<typename T, typename U>
   bool operator!=(const Optional<T>& lhs, const U& rhs) {
     return bool(lhs) ? *lhs != rhs : true;
@@ -254,16 +288,6 @@ namespace voc {
     }
     return *lhs < *rhs;
   }
-
-  // template<typename T>
-  // bool operator< (const Optional<T>& lhs, std::nullopt_t) {
-  //   return false;
-  // }
-
-  // template<typename T>
-  // bool operator< (std::nullopt_t, const Optional<T>& rhs) {
-  //   return rhs;
-  // }
 
   template<typename T, typename U>
   bool operator< (const Optional<T>& lhs, const U& rhs) {
@@ -286,16 +310,6 @@ namespace voc {
     return *lhs <= *rhs;
   }
 
-  // template<typename T>
-  // bool operator<=(const Optional<T>& lhs, std::nullopt_t) {
-  //   return !lhs;
-  // }
-
-  // template<typename T>
-  // bool operator<=(std::nullopt_t, const Optional<T>& rhs) {
-  //   return true;
-  // }
-
   template<typename T, typename U>
   bool operator<=(const Optional<T>& lhs, const U& rhs) {
     return bool(lhs) ? *lhs <= rhs : true;
@@ -317,16 +331,6 @@ namespace voc {
     return *lhs > *rhs;
   }
 
-  // template<typename T>
-  // bool operator> (const Optional<T>& lhs, std::nullopt_t) {
-  //   return lhs;
-  // }
-
-  // template<typename T>
-  // bool operator> (std::nullopt_t, const Optional<T>& rhs) {
-  //   return false;
-  // }
-
   template<typename T, typename U>
   bool operator> (const Optional<T>& lhs, const U& rhs) {
     return bool(lhs) ? *lhs > rhs : false;
@@ -347,16 +351,6 @@ namespace voc {
     }
     return *lhs >= *rhs;
   }
-
-  // template<typename T>
-  // bool operator>=(const Optional<T>& lhs, std::nullopt_t) {
-  //   return true;
-  // }
-
-  // template<typename T>
-  // bool operator>=(std::nullopt_t, const Optional<T>& rhs) {
-  //   return !rhs;
-  // }
 
   template<typename T, typename U>
   bool operator>=(const Optional<T>& lhs, const U& rhs) {

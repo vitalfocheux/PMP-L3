@@ -22,20 +22,10 @@ namespace voc {
 
       public:
         HelperGeneric(const T& value) : value(value) {
-          // std::cout << this << " " <<"HelperGeneric(const T& value)" << std::endl;
         }
-
-        // HelperGeneric(const voc::Any& other) : value(other.content->clone()) {
-        //   std::cout << this << " " <<"HelperGeneric(const T& value) with Any" << std::endl;
-        // }
 
         HelperGeneric(T&& value) : value(value) {
-          // std::cout << this << " " <<"HelperGeneric(T&& value)" << std::endl;
         }
-
-        // HelperGeneric(voc::Any&& other) : value(other.content) {
-        //   std::cout << this << " " <<"HelperGeneric(T&& value) with Any" << std::endl;
-        // }
 
         HelperGeneric* clone() const override {
           return new HelperGeneric(value);
@@ -63,8 +53,14 @@ namespace voc {
      */
     Any();
 
+    /**
+     * @brief Copy constructor
+    */
     Any(const Any& other);
 
+    /**
+     * @brief Move constructor
+    */
     Any(Any&& other) noexcept;
 
     /*
@@ -72,10 +68,12 @@ namespace voc {
      */
     template<typename T, typename std::enable_if<!std::is_same<std::decay_t<T>, Any>::value>::type* = nullptr>
     Any(T&& value) {
-      // std::cout << this << " " << "Any(T&& value)" << std::endl;
       content = new details::HelperGeneric<T>(std::forward<T>(value));
     }
 
+    /*
+     * Create an object thanks to a value from an Any with SFINAE
+     */
     template<typename U, typename std::enable_if<std::is_same<std::decay_t<U>, Any>::value>::type* = nullptr>
     Any(U&& value) {
       content = value.content ? value.content->clone() : nullptr;
@@ -86,11 +84,16 @@ namespace voc {
      */
     template<typename T, typename ... Args>
     Any(InPlaceTypeStruct<T> inPlace [[maybe_unused]], Args&& ... args) : content(new details::HelperGeneric<T>(T(std::forward<Args>(args)...))){
-      // std::cout << this << " " << "Any(InPlaceTypeStruct<T> inPlace, Args&& ... args)" << std::endl;
     }
 
+    /**
+     * @brief Copy assignment operator
+    */
     Any& operator=(const Any& other);
 
+    /**
+     * @brief Move assignment operator
+    */
     Any& operator=(Any&& other) noexcept;
 
 
@@ -116,6 +119,9 @@ namespace voc {
       return *this;
     }
 
+    /**
+     * @brief Destructor
+    */
     ~Any();
 
     /*
@@ -140,8 +146,6 @@ namespace voc {
         const std::type_info& getType() const;
 
       private:
-
-        // std::unique_ptr<details::Helper> content = nullptr;
 
         details::Helper* content = nullptr;
 
@@ -171,7 +175,6 @@ namespace voc {
    */
   template<typename T>
   T anyCast(const Any& any) {
-    // std::cout << "anyCast(const Any& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -183,7 +186,6 @@ namespace voc {
    */
   template<typename T>
   T anyCast(Any& any) {
-    // std::cout << "anyCast(Any& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -195,7 +197,6 @@ namespace voc {
    */
   template<typename T>
   T anyCast(Any&& any) {
-    // std::cout << "anyCast(Any&& any)" << std::endl;
     if(!any.hasValue() || any.getType() != typeid(T)){
       throw std::bad_cast();
     }
@@ -207,7 +208,6 @@ namespace voc {
    */
   template<typename T>
   T* anyCast(Any* any) {
-    // std::cout << "anyCast(Any* any)" << std::endl;
     if(!any->hasValue() || any->getType() != typeid(T)){
       return nullptr;
     }
@@ -219,7 +219,6 @@ namespace voc {
    */
   template<typename T>
   const T* anyCast(const Any* any) {
-    // std::cout << "anyCast(const Any* any)" << std::endl;
     if(!any->hasValue() || any->getType() != typeid(T)){
       return nullptr;
     }
