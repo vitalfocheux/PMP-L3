@@ -23,6 +23,11 @@ TEST(FormatPrint, String){
   EXPECT_EQ(str, "The cake is lie!");
 }
 
+TEST(FormatPrint, NullString){
+  auto str = fp::format("%s", "");
+  EXPECT_EQ(str, "(null)");
+}
+
 TEST(FormatPrint, Int){
   auto str = fp::format("The Answer is %d", 42);
   EXPECT_EQ(str, "The Answer is 42");
@@ -44,19 +49,28 @@ TEST(FormatPrint, Character){
 }
 
 TEST(FormatPrint, Boolean){
-  auto str = fp::format("This sentence is %d", false);
+  auto str = fp::format("This sentence is %b", false);
+  EXPECT_EQ(str, "This sentence is false");
 }
 
 // TEST(FormatPrint, CustomType){
 //   my::Foo foo = {8};
 //   auto str = fp::format("%o", foo);
-//   EXPECT_EQ(str, "User implementation. Here: 8");
+//   EXPECT_EQ(str, "8");
 // }
 
 TEST(FormatPrint, CustomTypeAddress){
   my::Foo foo = {8};
   auto str = fp::format("%p", &foo);
-  EXPECT_EQ(str, "Runtime address prefix by 0x");
+  std::ostringstream oss;
+  oss << &foo;
+  std::string expectedAddress = oss.str();
+  EXPECT_EQ(str, expectedAddress);
+}
+
+TEST(FormatPrint, Oui){
+  auto str = fp::format("%d%%i", 100);
+  EXPECT_EQ(str, "100%i");
 }
 
 TEST(FormatPrint, NoSibsistution){
@@ -64,6 +78,21 @@ TEST(FormatPrint, NoSibsistution){
   EXPECT_EQ(str, "No substitution: %i");
 }
 
+TEST(FormatPrint, ManyArguments){
+  try{
+    auto str = fp::format("Too many arguments", 10);
+  } catch (const std::runtime_error& e){
+    std::cout << e.what() << std::endl;
+  }
+}
+
+TEST(FormatPrint, MissingArgument){
+  try{
+    auto str = fp::format("Missing argument: %d");
+  } catch (const std::runtime_error& e){
+    std::cout << e.what() << std::endl;
+  }
+}
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
