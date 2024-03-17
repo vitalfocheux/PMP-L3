@@ -9,6 +9,19 @@
 
 namespace fp {
 
+  std::size_t countSubsistution(const std::string& str) {
+    for(std::size_t i = 0; i < str.size() - 1; i++){
+      if(str[i] == '%'){
+        if(str[i+1] == '%'){
+          i++;
+        } else if(str[i+1] == 'd' || str[i+1] == 'i' || str[i+1] == 'f' || str[i+1] == 'b' || str[i+1] == 's' || str[i+1] == 'c' || str[i+1] == 'p' || str[i+1] == 'x' || str[i+1] == 'o') {
+          return 1 + countSubsistution(str.substr(i+1));
+        }
+      }
+    }
+    return 0;
+  }
+
   // template<typename T, typename U>
   // struct is_pointer_of_type {
   //     static constexpr bool value = std::is_pointer<T>::value && std::is_same<typename std::remove_pointer<T>::type, U>::value;
@@ -135,6 +148,10 @@ namespace fp {
    */
   template<typename... Args>
   std::string format(const std::string& formatString, const Args&... args) {
+    std::cout << countSubsistution(formatString) << " " << sizeof...(args) << std::endl;
+    if(countSubsistution(formatString) != sizeof...(args)){
+      throw std::runtime_error("Runtime error: Too many arguments");
+    }
     // if (sizeof...(args) > 0 && formatString.find("%%") == std::string::npos){
     //   throw std::runtime_error("Runtime error: Too many arguments");
     // }
@@ -151,12 +168,16 @@ namespace fp {
   }
 
   std::string format(const std::string& formatString){
-    if (formatString.find("%%") != std::string::npos){
+    std::cout << countSubsistution(formatString) << std::endl;
+    if(countSubsistution(formatString) != 0){
+      throw std::runtime_error("Runtime error: Missing argument");
+    }
+    // if (formatString.find("%%") != std::string::npos){
       std::string fmt = formatString;
       return echappement(fmt);
-    }
+    // }
     // throw std::runtime_error("Runtime error: Missing argument");
-    return formatString;
+    // return formatString;
   }
 
   
