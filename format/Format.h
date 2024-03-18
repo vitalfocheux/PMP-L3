@@ -9,6 +9,20 @@
 
 namespace fp {
 
+  template <typename T>
+class has_to_string_overload
+{
+private:
+    template <typename C>
+    static auto test(void*) -> decltype(to_string(std::declval<C>()), std::true_type());
+
+    template <typename C>
+    static std::false_type test(...);
+
+public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+};
+
   std::size_t countSubsistution(const std::string& str) {
     for(std::size_t i = 0; i < str.size() - 1; i++){
       if(str[i] == '%'){
@@ -108,7 +122,13 @@ namespace fp {
           }
           break;
         case 'o':
-          os << "User implementation. Here: " << arg;
+          // os << "User implementation. Here: " << arg;
+          std::cout << std::boolalpha << has_to_string_overload<T>::value << std::endl;
+          if constexpr (has_to_string_overload<T>::value) {
+            os << to_string(arg);
+          } else {
+            throw std::runtime_error("Runtime error: Bad argument type CUSTOM");
+          }
           break;
         case '%':
           os << "%";

@@ -53,11 +53,11 @@ TEST(FormatPrint, Boolean){
   EXPECT_EQ(str, "This sentence is false");
 }
 
-// TEST(FormatPrint, CustomType){
-//   my::Foo foo = {8};
-//   auto str = fp::format("%o", foo);
-//   EXPECT_EQ(str, "8");
-// }
+TEST(FormatPrint, CustomType){
+  my::Foo foo = {8};
+  auto str = fp::format("%o", foo);
+  EXPECT_EQ(str, "8");
+}
 
 TEST(FormatPrint, CustomTypeAddress){
   my::Foo foo = {8};
